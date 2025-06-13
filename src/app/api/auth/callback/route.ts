@@ -1,8 +1,6 @@
 // src/app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import { v4 as uuidv4 } from 'uuid'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,7 +50,6 @@ export async function GET(req: NextRequest) {
   if (existingConnection) {
     userId = existingConnection.user_id
 
-    // ✅ Auth.users に存在するか確認し、なければ再作成して userId を更新
     const { data: userInAuth } = await supabaseAdmin.auth.admin.getUserById(userId)
 
     if (!userInAuth?.id || userInAuth.id !== userId) {
@@ -89,8 +86,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ✅ users テーブルに存在しなければ upsert
-    const { data: existingUser, error: fetchError } = await supabaseAdmin
+    const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('id', userId)
@@ -154,7 +150,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
     }
 
-    // ✅ users テーブルにも upsert
     const { data: userUpsertResult, error: userUpsertError } = await supabaseAdmin.from('users').upsert({
       id: userId,
       name: `${athlete.firstname} ${athlete.lastname}`,
@@ -174,7 +169,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Cookie セット & dashboard へ
   const response = NextResponse.redirect(new URL('/dashboard', req.url))
   response.headers.set(
     'Set-Cookie',
