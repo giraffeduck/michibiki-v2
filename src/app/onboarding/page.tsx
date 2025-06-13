@@ -2,9 +2,9 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 
-export default function OnboardingPage() {
+function OnboardingForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userId = searchParams.get('user_id')
@@ -64,5 +64,13 @@ export default function OnboardingPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="text-center mt-10">読み込み中...</div>}>
+      <OnboardingForm />
+    </Suspense>
   )
 }
