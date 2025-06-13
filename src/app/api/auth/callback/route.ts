@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
     const { data: userInAuth } = await supabaseAdmin.auth.admin.getUserById(userId!)
 
-    if (!userInAuth?.id || userInAuth.id !== userId) {
+    if (!userInAuth?.user?.id || userInAuth.user.id !== userId) {
       const { data: recreatedUser, error: recreateError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
