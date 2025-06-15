@@ -1,6 +1,6 @@
 // tailwind.config.ts
 import type { Config } from "tailwindcss"
-import { fontFamily } from "tailwindcss/defaultTheme"
+import defaultTheme from "tailwindcss/defaultTheme"
 
 const config: Config = {
   darkMode: "class",
@@ -18,6 +18,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -55,9 +58,8 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-      },
-      fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {
