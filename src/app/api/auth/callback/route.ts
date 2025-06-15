@@ -51,7 +51,6 @@ export async function GET(req: NextRequest) {
     userId = existingConnection.user_id
 
     const { data: userInAuth } = await supabaseAdmin.auth.admin.getUserById(userId!)
-
     if (!userInAuth?.user?.id || userInAuth.user.id !== userId) {
       const { data: recreatedUser, error: recreateError } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -93,7 +92,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle()
 
     if (!existingUser) {
-      const { data: userUpsertResult, error: userUpsertError } = await supabaseAdmin.from('users').upsert({
+      const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
         id: userId,
         name: `${athlete.firstname} ${athlete.lastname}`,
         gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
@@ -105,7 +104,6 @@ export async function GET(req: NextRequest) {
         onConflict: 'id',
       })
 
-      console.log('[User upsert result]', userUpsertResult)
       if (userUpsertError) {
         console.error('User upsert failed:', userUpsertError)
         return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
@@ -150,7 +148,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
     }
 
-    const { data: userUpsertResult, error: userUpsertError } = await supabaseAdmin.from('users').upsert({
+    const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
       id: userId,
       name: `${athlete.firstname} ${athlete.lastname}`,
       gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
@@ -162,14 +160,14 @@ export async function GET(req: NextRequest) {
       onConflict: 'id',
     })
 
-    console.log('[User upsert result]', userUpsertResult)
     if (userUpsertError) {
       console.error('User upsert failed:', userUpsertError)
       return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
     }
   }
 
-  const response = NextResponse.redirect(new URL('/dashboard', req.url))
+  // Cookieに user_id をセットして /auth/callback/confirm にリダイレクト
+  const response = NextResponse.redirect(new URL('/auth/callback/confirm', req.url))
   response.headers.set(
     'Set-Cookie',
     `user_id=${userId}; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax`
