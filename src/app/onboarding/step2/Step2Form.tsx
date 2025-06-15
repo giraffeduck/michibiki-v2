@@ -1,9 +1,7 @@
-// src/app/onboarding/step2/Step2Form.tsx
-
 'use client'
 
-import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,64 +10,60 @@ export default function Step2Form() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [weight, setWeight] = useState('')
+  const [weightKg, setWeightKg] = useState('')
   const [ftp, setFtp] = useState('')
-  const [run5k, setRun5k] = useState('')
-  const [swim400m, setSwim400m] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [run5kTime, setRun5kTime] = useState('')
+  const [swim400mTime, setSwim400mTime] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
 
-    const payload = {
+    const params = {
       week_start_day: searchParams.get('week_start_day'),
       timezone: searchParams.get('timezone'),
-      gender: searchParams.get('gender') || null,
-      birth_date: searchParams.get('birth_date') || null,
-      email: searchParams.get('email') || null,
-      weight_kg: weight ? Number(weight) : null,
-      ftp: ftp ? Number(ftp) : null,
-      run_5k_time: run5k ? `00:${run5k}` : null,
-      swim_400m_time: swim400m ? `00:${swim400m}` : null,
+      gender: searchParams.get('gender'),
+      birth_date: searchParams.get('birth_date'),
+      email: searchParams.get('email'),
+      weight_kg: parseFloat(weightKg),
+      ftp: ftp ? parseInt(ftp) : undefined,
+      run_5k_time: run5kTime ? `00:${run5kTime}` : undefined,
+      swim_400m_time: swim400mTime ? `00:${swim400mTime}` : undefined,
     }
 
-    const response = await fetch('/api/user/settings', {
+    const res = await fetch('/api/user/settings', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
     })
 
-    if (response.ok) {
+    if (res.ok) {
       router.push('/dashboard')
     } else {
-      console.error('Failed to submit user settings')
+      console.error('API error:', await res.text())
     }
-
-    setIsSubmitting(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
-      <h1 className="text-xl font-bold">トレーニング情報を入力してください</h1>
-      <p className="text-sm text-muted-foreground">
-        あなたのトレーニングに関する基本情報を入力してください。<br />
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-8">
+      <p className="text-sm text-gray-600">
+        あなたのトレーニングに関する基本情報を入力してください。
+        <br />
         ※「体重」は入力必須。他は任意項目です。
       </p>
 
       <div>
-        <Label htmlFor="weight">体重（kg）<span className="text-red-500">*</span></Label>
+        <Label htmlFor="weightKg">体重（kg）※必須</Label>
         <Input
-          id="weight"
+          id="weightKg"
           type="number"
-          step="0.1"
           required
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
+          value={weightKg}
+          onChange={(e) => setWeightKg(e.target.value)}
         />
       </div>
 
       <div>
-        <Label htmlFor="ftp">FTP（W）</Label>
+        <Label htmlFor="ftp">FTP（任意）</Label>
         <Input
           id="ftp"
           type="number"
@@ -79,29 +73,30 @@ export default function Step2Form() {
       </div>
 
       <div>
-        <Label htmlFor="run5k">5kmランベストタイム（MM:SS）</Label>
+        <Label htmlFor="run5kTime">5kmランベスト（任意, mm:ss）</Label>
         <Input
-          id="run5k"
+          id="run5kTime"
           placeholder="20:00"
-          pattern="[0-5][0-9]:[0-5][0-9]"
-          value={run5k}
-          onChange={(e) => setRun5k(e.target.value)}
+          value={run5kTime}
+          onChange={(e) => setRun5kTime(e.target.value)}
         />
       </div>
 
       <div>
-        <Label htmlFor="swim400m">400mスイムベストタイム（MM:SS）</Label>
+        <Label htmlFor="swim400mTime">400mスイムベスト（任意, mm:ss）</Label>
         <Input
-          id="swim400m"
-          placeholder="06:30"
-          pattern="[0-5][0-9]:[0-5][0-9]"
-          value={swim400m}
-          onChange={(e) => setSwim400m(e.target.value)}
+          id="swim400mTime"
+          placeholder="08:00"
+          value={swim400mTime}
+          onChange={(e) => setSwim400mTime(e.target.value)}
         />
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? '送信中...' : '完了'}
+      <Button
+        type="submit"
+        className="w-full bg-[#009F9D] text-white hover:bg-[#007B7A]"
+      >
+        入力完了してMichibikiを使用
       </Button>
     </form>
   )
