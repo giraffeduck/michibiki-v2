@@ -1,11 +1,15 @@
 // src/app/api/user/settings/route.ts
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import type { Database } from '@/lib/database.types'
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createRouteHandlerClient<Database>({
+    cookies,
+    headers,
+  })
 
   const payload = await req.json()
 
@@ -28,14 +32,12 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication failed', details: userError }),
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Authentication failed', details: userError }, { status: 401 })
   }
 
-  const { error } = await supabase.from('users').upsert(
-    {
+  const { error: upsertError } = await supabase
+    .from('users')
+    .upsert({
       id: user.id,
       name,
       gender,
@@ -47,15 +49,11 @@ export async function POST(req: NextRequest) {
       week_start_day,
       email,
       timezone,
-    },
-    { onConflict: 'id' }
-  )
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
     })
+
+  if (upsertError) {
+    return NextResponse.json({ error: 'Database update failed', details: upsertError }, { status: 500 })
   }
 
-  return new Response(JSON.stringify({ success: true }), { status: 200 })
+  return NextResponse.json({ success: true })
 }
