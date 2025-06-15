@@ -1,49 +1,31 @@
 // src/app/api/user/settings/route.ts
-
-import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { NextResponse, NextRequest } from 'next/server'
 import type { Database } from '@/lib/database.types'
 
 export async function POST(req: NextRequest) {
-  const cookieStore = cookies()
-
   const supabase = createRouteHandlerClient<Database>({
-    cookies: () => cookieStore,
+    headers,
+    cookies,
   })
-
-  const payload = await req.json()
-
-  const {
-    week_start_day,
-    timezone,
-    gender,
-    birth_date,
-    email,
-    weight_kg,
-    ftp,
-    run_5k_time,
-    swim_400m_time,
-  } = payload
 
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser()
 
-  console.log('[settings API] payload:', payload)
-  console.log('[settings API] supabase user:', user)
-  if (!user) {
+  if (authError || !user) {
     console.error('[settings API] Auth error:', authError)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { error: upsertError } = await supabase
+  const payload = await req.json()
+  const { gender, birth_date, email, weight_kg, ftp, run_5k_time, swim_400m_time, timezone, week_start_day } = payload
+
+  const { error } = await supabase
     .from('users')
-    .upsert({
-      id: user.id,
-      week_start_day,
-      timezone,
+    .update({
       gender,
       birth_date,
       email,
@@ -51,12 +33,15 @@ export async function POST(req: NextRequest) {
       ftp,
       run_5k_time,
       swim_400m_time,
+      timezone,
+      week_start_day,
     })
+    .eq('id', user.id)
 
-  if (upsertError) {
-    console.error('[settings API] Upsert error:', upsertError)
-    return NextResponse.json({ error: 'Failed to save user settings' }, { status: 500 })
+  if (error) {
+    console.error('[settings API] DB update error:', error)
+    return NextResponse.json({ error: 'Failed to update user settings' }, { status: 500 })
   }
 
-  return NextResponse.json({ message: 'Settings saved successfully' })
+  return NextResponse.json({ success: true })
 }
