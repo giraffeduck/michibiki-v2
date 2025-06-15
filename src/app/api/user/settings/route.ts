@@ -3,8 +3,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+type UpdateFields = Partial<{
+  week_start_day: string
+  timezone: string
+  gender: string
+  birth_date: string
+  email: string
+  weight_kg: number
+  ftp: number
+  run_5k_time: string
+  swim_400m_time: string
+}>
+
 export async function POST(req: NextRequest) {
-  // ✅ cookies を関数のまま渡す（ココが超重要）
   const supabase = createRouteHandlerClient({ cookies })
 
   const payload = await req.json()
@@ -34,7 +45,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const updateFields: { [key: string]: any } = {
+  const updateFields: UpdateFields = {
     week_start_day,
     timezone,
     gender,
@@ -47,8 +58,9 @@ export async function POST(req: NextRequest) {
   }
 
   Object.keys(updateFields).forEach((key) => {
-    if (updateFields[key] === undefined || updateFields[key] === '') {
-      delete updateFields[key]
+    const value = updateFields[key as keyof UpdateFields]
+    if (value === undefined || value === '') {
+      delete updateFields[key as keyof UpdateFields]
     }
   })
 
