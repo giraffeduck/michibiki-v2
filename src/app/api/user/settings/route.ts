@@ -1,22 +1,16 @@
 // src/app/api/user/settings/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { headers, cookies } from 'next/headers'
-
-type UpdateFields = Partial<{
-  week_start_day: string
-  timezone: string
-  gender: string
-  birth_date: string
-  email: string
-  weight_kg: number
-  ftp: number
-  run_5k_time: string
-  swim_400m_time: string
-}>
+import { cookies } from 'next/headers'
+import type { Database } from '@/lib/database.types'
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ headers, cookies })
+  const cookieStore = cookies()
+
+  const supabase = createRouteHandlerClient<Database>({
+    cookies: () => cookieStore,
+  })
 
   const payload = await req.json()
 
@@ -39,41 +33,30 @@ export async function POST(req: NextRequest) {
 
   console.log('[settings API] payload:', payload)
   console.log('[settings API] supabase user:', user)
-
-  if (authError || !user) {
+  if (!user) {
     console.error('[settings API] Auth error:', authError)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const updateFields: UpdateFields = {
-    week_start_day,
-    timezone,
-    gender,
-    birth_date,
-    email,
-    weight_kg,
-    ftp,
-    run_5k_time,
-    swim_400m_time,
-  }
-
-  // 空値やundefinedのキーを削除
-  Object.keys(updateFields).forEach((key) => {
-    const value = updateFields[key as keyof UpdateFields]
-    if (value === undefined || value === '') {
-      delete updateFields[key as keyof UpdateFields]
-    }
-  })
-
-  const { error: updateError } = await supabase
+  const { error: upsertError } = await supabase
     .from('users')
-    .update(updateFields)
-    .eq('id', user.id)
+    .upsert({
+      id: user.id,
+      week_start_day,
+      timezone,
+      gender,
+      birth_date,
+      email,
+      weight_kg,
+      ftp,
+      run_5k_time,
+      swim_400m_time,
+    })
 
-  if (updateError) {
-    console.error('[settings API] update error:', updateError)
-    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  if (upsertError) {
+    console.error('[settings API] Upsert error:', upsertError)
+    return NextResponse.json({ error: 'Failed to save user settings' }, { status: 500 })
   }
 
-  return NextResponse.json({ message: 'Settings updated' }, { status: 200 })
+  return NextResponse.json({ message: 'Settings saved successfully' })
 }
