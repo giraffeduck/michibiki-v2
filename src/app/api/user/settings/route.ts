@@ -1,7 +1,7 @@
 // src/app/api/user/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 
 type UpdateFields = Partial<{
   week_start_day: string
@@ -16,7 +16,7 @@ type UpdateFields = Partial<{
 }>
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerClient({ headers, cookies })
 
   const payload = await req.json()
 
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     swim_400m_time,
   }
 
+  // 空値やundefinedのキーを削除
   Object.keys(updateFields).forEach((key) => {
     const value = updateFields[key as keyof UpdateFields]
     if (value === undefined || value === '') {

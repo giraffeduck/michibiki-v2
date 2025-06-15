@@ -45,21 +45,15 @@ export default function Step2Form() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-8">
-      <p className="text-sm text-gray-600">
-        あなたのトレーニングに関する基本情報を入力してください。
-        <br />
-        ※「体重」は入力必須。他は任意項目です。
-      </p>
-
-      <div>
-        <Label htmlFor="weightKg">体重（kg）※必須</Label>
-        <Input
-          id="weightKg"
-          type="number"
-          required
-          value={weightKg}
-          onChange={(e) => setWeightKg(e.target.value)}
-        />
+        <div>
+         <Label htmlFor="weightKg">体重（kg）※必須</Label>
+         <Input
+              id="weightKg"
+              type="number"
+              required
+              value={weightKg}
+              onChange={(e) => setWeightKg(e.target.value)}
+         />
       </div>
 
       <div>
