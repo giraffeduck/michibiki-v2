@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { cookies } from 'next/headers'
 
 export default function ConfirmPage() {
   const searchParams = useSearchParams()
