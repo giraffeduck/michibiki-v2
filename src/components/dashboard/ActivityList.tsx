@@ -21,7 +21,9 @@ export function ActivityList({ isoWeek }: { isoWeek: string }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`/api/activities/week?week=${isoWeek}`)
+        const res = await fetch(`/api/activities/week?week=${isoWeek}`, {
+          credentials: 'include',
+        })
         const json = await res.json()
         if (!res.ok) throw new Error(json.error || '不明なエラー')
         setActivities(json.data)
