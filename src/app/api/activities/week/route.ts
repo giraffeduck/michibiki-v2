@@ -12,14 +12,13 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url)
-  const isoWeekParam = searchParams.get('week') // 例: '2025-W23'
+  const isoWeekParam = searchParams.get('week') // e.g., '2025-W24'
 
   if (!isoWeekParam) {
-    return NextResponse.json({ error: 'Missing week param (e.g. ?week=2025-W23)' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing week param (e.g. ?week=2025-W24)' }, { status: 400 })
   }
 
   try {
-    // ISO週 → 実際の期間に変換
     const [yearStr, weekStr] = isoWeekParam.split('-W')
     const year = parseInt(yearStr, 10)
     const week = parseInt(weekStr, 10)
@@ -28,7 +27,7 @@ export async function GET(req: Request) {
       throw new Error('Invalid ISO week format')
     }
 
-    const refDate = new Date(year, 0, 4 + (week - 1) * 7) // ISO週の第1木曜を基準に
+    const refDate = new Date(year, 0, 4 + (week - 1) * 7) // ISO週の第1木曜を含む週
     const startDate = startOfISOWeek(refDate)
     const endDate = endOfISOWeek(refDate)
 
@@ -50,8 +49,9 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ data })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
     console.error('[API Error]', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

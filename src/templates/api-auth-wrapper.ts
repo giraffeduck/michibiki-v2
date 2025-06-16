@@ -1,9 +1,17 @@
-// /templates/api-auth-wrapper.ts
-
+// src/templates/api-auth-wrapper.ts
+import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
-// ✅ Cookieから user_id を取得（async対応済み）
-export async function getUserIdFromCookie(): Promise<string | null> {
-  const cookieStore = await cookies()
-  return cookieStore.get('user_id')?.value ?? null
+/**
+ * Supabase Auth 認証済みユーザー情報を取得するユーティリティ関数
+ * headers() を使用せず cookies() を使うことで、ビルドエラーを回避
+ */
+export async function getUserFromSession() {
+  const supabase = createClient(cookies())
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  return { user, error }
 }
