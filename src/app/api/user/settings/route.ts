@@ -1,39 +1,39 @@
 // src/app/api/user/settings/route.ts
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { getUserIdFromCookie } from '@/templates/api-auth-wrapper'
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import type { NextRequest } from 'next/server'
-import type { Database } from '@/lib/database.types'
+export async function POST(req: Request) {
+  const userId = await getUserIdFromCookie()
 
-export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient<Database>({
-    cookies,
-  })
-
-  const payload = await req.json()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    return new Response(
-      JSON.stringify({ error: 'Authentication failed', details: userError }),
-      { status: 401 }
-    )
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { weight_kg, ftp, run_5k_time, swim_400m_time } = payload
+  const body = await req.json()
 
-  const { error } = await supabase
-    .from('users')
-    .update({ weight_kg, ftp, run_5k_time, swim_400m_time })
-    .eq('id', user.id)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await supabase.from('users').update({
+    week_start_day: body.week_start_day,
+    timezone: body.timezone,
+    gender: body.gender || null,
+    birth_date: body.birth_date || null,
+    email: body.email || null,
+    weight_kg: body.weight_kg,
+    ftp: body.ftp || null,
+    run_5k_time: body.run_5k_time || null,
+    swim_400m_time: body.swim_400m_time || null,
+    updated_at: new Date().toISOString(),
+  }).eq('id', userId)
 
   if (error) {
-    return new Response(JSON.stringify({ error: 'Database update failed', details: error }), {
-      status: 500,
-    })
+    console.error('User update error:', error)
+    return NextResponse.json({ error: 'Failed to update user settings' }, { status: 500 })
   }
 
-  return new Response(JSON.stringify({ message: 'Settings updated' }), {
-    status: 200,
-  })
+  return NextResponse.json({ success: true })
 }
