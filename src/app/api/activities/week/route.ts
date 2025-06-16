@@ -6,7 +6,10 @@ import { getUserFromSession } from '@/templates/api-auth-wrapper'
 import { startOfISOWeek, endOfISOWeek } from 'date-fns'
 
 export async function GET(req: Request) {
-  const { user } = await getUserFromSession()
+  const { user, error: authError } = await getUserFromSession()
+  console.log('[getUserFromSession] user:', user)
+  console.log('[getUserFromSession] error:', authError)
+
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
