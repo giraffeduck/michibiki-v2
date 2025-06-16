@@ -166,12 +166,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Cookieに user_id をセットして /auth/callback/confirm にリダイレクト
-  const response = NextResponse.redirect(new URL('/auth/callback/confirm', req.url))
-  response.headers.set(
-    'Set-Cookie',
-    `user_id=${userId}; Path=/; Max-Age=7200; HttpOnly; SameSite=Lax`
-  )
-
-  return response
+  // 🔁 クエリパラメータで user_id を渡してクライアント側で Cookie を設定
+  return NextResponse.redirect(new URL(`/auth/callback/confirm?user_id=${userId}`, req.url))
 }
