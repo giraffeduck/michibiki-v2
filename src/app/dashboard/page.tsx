@@ -3,6 +3,7 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,12 +41,20 @@ export default async function DashboardPage() {
     )
   }
 
+  // ✅ onboarding未完了なら /onboarding にリダイレクト
+  if (!user.week_start_day || !user.weight_kg) {
+    console.log('🔁 onboarding 未完了のためリダイレクト')
+    return redirect('/onboarding')
+  }
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">こんにちは、{user.name ?? 'トライアスリート'} さん！</h1>
       <p className="mt-2">メールアドレス: {user.email ?? '(未登録)'}</p>
       <p className="mt-2">性別: {user.gender ?? '(未設定)'}</p>
       <p className="mt-2">プラン: {user.plan ?? 'free'}</p>
+      <p className="mt-2">週の開始日: {user.week_start_day}</p>
+      <p className="mt-2">体重: {user.weight_kg} kg</p>
     </div>
   )
 }
