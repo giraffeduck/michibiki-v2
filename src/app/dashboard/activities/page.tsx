@@ -3,8 +3,14 @@ import { Suspense } from 'react'
 import { ActivityList } from '@/components/dashboard/ActivityList'
 import { getCurrentISOWeek } from '@/utils/dateHelpers'
 
-export default async function ActivitiesPage({ searchParams }: { searchParams: { week?: string } }) {
-  const weekParam = searchParams.week || getCurrentISOWeek()
+type PageProps = {
+  searchParams?: {
+    week?: string
+  }
+}
+
+export default async function ActivitiesPage({ searchParams }: PageProps) {
+  const weekParam = searchParams?.week || getCurrentISOWeek()
 
   return (
     <div className="p-4">
