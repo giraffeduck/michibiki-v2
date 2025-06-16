@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
       const { data: recreatedUser, error: recreateError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
+        email_confirm: true, // ✅ 必須
       })
 
       if (recreateError?.status === 422 && recreateError.message?.includes('already been registered')) {
@@ -123,6 +124,7 @@ export async function GET(req: NextRequest) {
       const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
+        email_confirm: true, // ✅ 必須
       })
 
       if (createError) {
@@ -169,7 +171,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 🔐 Supabase Auth にログイン（ここが今回の追加）
+  // 🔐 Supabase Auth にログイン（セッション確立）
   const supabaseClient = createServerComponentClient<Database>({ cookies })
   const { error: loginError } = await supabaseClient.auth.signInWithPassword({
     email,
