@@ -1,6 +1,9 @@
 // src/app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { Database } from '@/types/supabase'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -166,6 +169,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 🔁 クエリパラメータで user_id を渡してクライアント側で Cookie を設定
-  return NextResponse.redirect(new URL(`/auth/callback/confirm?user_id=${userId}`, req.url))
+  // 🔐 Supabase Auth にログイン（ここが今回の追加）
+  const supabaseClient = createServerComponentClient<Database>({ cookies })
+  const { error: loginError } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (loginError) {
+    console.error('Failed to login user to Supabase Auth:', loginError)
+    return NextResponse.redirect(new URL('/login-error?error=supabase_login_failed', req.url))
+  }
+
+  // ✅ セッション確立後、ダッシュボードに遷移
+  return NextResponse.redirect(new URL('/dashboard', req.url))
 }
