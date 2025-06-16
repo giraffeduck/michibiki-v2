@@ -25,8 +25,9 @@ export function ActivityList({ isoWeek }: { isoWeek: string }) {
         const json = await res.json()
         if (!res.ok) throw new Error(json.error || '不明なエラー')
         setActivities(json.data)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        setError(message)
       }
     }
     fetchData()
@@ -66,4 +67,10 @@ export function ActivityList({ isoWeek }: { isoWeek: string }) {
   )
 }
 
-function formatDuration(sec: number | null | undefined)
+function formatDuration(sec: number | null | undefined): string {
+  if (!sec) return '-'
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
+}
