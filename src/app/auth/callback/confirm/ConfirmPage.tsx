@@ -1,20 +1,22 @@
-// src/app/auth/callback/confirm/ConfirmPage.tsx
 'use client'
 
 import { useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 export default function ConfirmPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   useEffect(() => {
-    const userId = searchParams.get('user_id')
+    // クライアントの Cookie から直接 user_id を参照（バリデーションなど必要なら追加）
+    const userId = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('user_id='))
+      ?.split('=')[1]
+
     if (userId) {
-      document.cookie = `user_id=${userId}; Path=/; Max-Age=7200;`
       router.push('/dashboard')
     }
-  }, [searchParams, router])
+  }, [router])
 
   return <p>ログインを完了しています。しばらくお待ちください...</p>
 }
