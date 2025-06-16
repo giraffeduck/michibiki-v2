@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getUserIdFromCookie } from '../../../../templates/api-auth-wrapper'
+import { getUserIdFromCookie } from '../../../../../templates/api-auth-wrapper'
 
 export async function POST(req: Request) {
   const userId = await getUserIdFromCookie()
