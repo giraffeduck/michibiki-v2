@@ -1,9 +1,13 @@
 // src/app/onboarding/step1/page.tsx
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
 export default function OnboardingStep1() {
+  const searchParams = useSearchParams()
+  const userId = searchParams.get('user_id') // ← URLから user_id を取得
+
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +22,7 @@ export default function OnboardingStep1() {
       const res = await fetch('/api/send-verification-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, user_id: userId })
       })
 
       const data = await res.json()
@@ -54,7 +58,7 @@ export default function OnboardingStep1() {
 
       <button
         onClick={handleSendEmail}
-        disabled={loading || !email}
+        disabled={loading || !email || !userId}
         className="bg-[#009F9D] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50"
       >
         {loading ? '送信中…' : '確認メールを送信'}

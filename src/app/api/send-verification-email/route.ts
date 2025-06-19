@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import jwt from 'jsonwebtoken'
-import { cookies } from 'next/headers'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const supabase = createClient(
@@ -13,17 +12,10 @@ const supabase = createClient(
 )
 
 export async function POST(req: Request) {
-  const { email } = await req.json()
+  const { email, user_id } = await req.json()
 
-  if (!email) {
-    return NextResponse.json({ error: 'メールアドレスが必要です' }, { status: 400 })
-  }
-
-  const cookieStore = await cookies()
-  const user_id = cookieStore.get('user_id')?.value
-
-  if (!user_id) {
-    return NextResponse.json({ error: 'ログイン情報が確認できません' }, { status: 401 })
+  if (!email || !user_id) {
+    return NextResponse.json({ error: 'メールアドレスまたはuser_idが不足しています' }, { status: 400 })
   }
 
   // user_id に対応する strava_id を取得
