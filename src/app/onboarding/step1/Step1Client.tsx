@@ -1,11 +1,9 @@
 // src/app/onboarding/step1/Step1Client.tsx
 'use client'
 
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function Step1Client() {
-  const searchParams = useSearchParams()
   const [userId, setUserId] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -13,9 +11,12 @@ export default function Step1Client() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const id = searchParams.get('user_id')
-    setUserId(id)
-  }, [searchParams])
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const id = params.get('user_id')
+      setUserId(id)
+    }
+  }, [])
 
   const handleSendEmail = async () => {
     setLoading(true)
