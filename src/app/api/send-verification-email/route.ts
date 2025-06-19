@@ -1,0 +1,82 @@
+// src/app/api/send-verification-email/route.ts
+
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
+import jwt from 'jsonwebtoken'
+import { cookies } from 'next/headers'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function POST(req: Request) {
+  const { email } = await req.json()
+
+  if (!email) {
+    return NextResponse.json({ error: 'メールアドレスが必要です' }, { status: 400 })
+  }
+
+  const cookieStore = cookies()
+  const user_id = cookieStore.get('user_id')?.value
+
+  if (!user_id) {
+    return NextResponse.json({ error: 'ログイン情報が確認できません' }, { status: 401 })
+  }
+
+  // user_id に対応する strava_id を取得
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('strava_id')
+    .eq('id', user_id)
+    .single()
+
+  if (userError || !user?.strava_id) {
+    return NextResponse.json({ error: 'ユーザー情報が取得できませんでした' }, { status: 404 })
+  }
+
+  const strava_id = user.strava_id
+
+  // 重複チェック
+  const { data: existingUsers, error: queryError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+
+  if (queryError) {
+    return NextResponse.json({ error: queryError.message }, { status: 500 })
+  }
+
+  if (existingUsers.length > 0) {
+    return NextResponse.json({ error: 'このメールアドレスは既に使用されています' }, { status: 409 })
+  }
+
+  // トークン発行（署名付きJWT、有効期限10分）
+  const token = jwt.sign(
+    { email, strava_id },
+    process.env.EMAIL_VERIFICATION_SECRET!,
+    { expiresIn: '10m' }
+  )
+
+  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-email?token=${token}`
+
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_SENDER_ADDRESS!,
+      to: email,
+      subject: '【Michibiki】メールアドレスの確認',
+      html: `
+        <p>以下のリンクをクリックしてメールアドレスを確認してください。</p>
+        <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+        <p>有効期限は10分間です。</p>
+      `,
+    })
+
+    return NextResponse.json({ message: '確認メールを送信しました' })
+  } catch (err) {
+    console.error('Email send error:', err)
+    return NextResponse.json({ error: 'メール送信に失敗しました' }, { status: 500 })
+  }
+}
