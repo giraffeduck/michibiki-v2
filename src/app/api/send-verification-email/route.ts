@@ -18,19 +18,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'メールアドレスまたはuser_idが不足しています' }, { status: 400 })
   }
 
-  // user_id に対応する strava_id を取得
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('strava_id')
-    .eq('id', user_id)
-    .single()
-
-  if (userError || !user?.strava_id) {
-    return NextResponse.json({ error: 'ユーザー情報が取得できませんでした' }, { status: 404 })
-  }
-
-  const strava_id = user.strava_id
-
   // 重複チェック
   const { data: existingUsers, error: queryError } = await supabase
     .from('users')
@@ -47,7 +34,7 @@ export async function POST(req: Request) {
 
   // トークン発行（署名付きJWT、有効期限10分）
   const token = jwt.sign(
-    { email, strava_id },
+    { email, user_id }, // ← strava_id の代わりに user_id を使う
     process.env.EMAIL_VERIFICATION_SECRET!,
     { expiresIn: '10m' }
   )

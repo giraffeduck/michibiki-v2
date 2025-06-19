@@ -20,19 +20,19 @@ export async function GET(req: Request) {
   try {
     const decoded = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET!) as {
       email: string
-      strava_id: number
+      user_id: string
     }
 
-    const { email, strava_id } = decoded
+    const { email, user_id } = decoded
 
-    // 該当ユーザーを更新
+    // 該当ユーザーを更新（email & email_verified）
     const { error: updateError } = await supabase
       .from('users')
       .update({
         email,
         email_verified: true
       })
-      .eq('strava_id', strava_id)
+      .eq('id', user_id)
 
     if (updateError) {
       console.error('Supabase update error:', updateError)
