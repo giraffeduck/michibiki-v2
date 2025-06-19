@@ -1,97 +1,128 @@
+// src/app/onboarding/step2/Step2Form.tsx
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 export default function Step2Form() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [weightKg, setWeightKg] = useState('')
+  const userId = searchParams.get('user_id') || ''
+  const weekStartDay = searchParams.get('week_start_day') || ''
+  const timezone = searchParams.get('timezone') || ''
+  const gender = searchParams.get('gender') || ''
+  const birthDate = searchParams.get('birth_date') || ''
+  const email = searchParams.get('email') || ''
+
+  const [weight, setWeight] = useState('')
   const [ftp, setFtp] = useState('')
-  const [run5kTime, setRun5kTime] = useState('')
-  const [swim400mTime, setSwim400mTime] = useState('')
+  const [run5k, setRun5k] = useState('')
+  const [swim400m, setSwim400m] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // 必須: 体重のみ
+  const isValid = weight.trim() !== '' && !isNaN(Number(weight))
 
-    const params = {
-      week_start_day: searchParams.get('week_start_day'),
-      timezone: searchParams.get('timezone'),
-      gender: searchParams.get('gender'),
-      birth_date: searchParams.get('birth_date'),
-      email: searchParams.get('email'),
-      weight_kg: parseFloat(weightKg),
-      ftp: ftp ? parseInt(ftp) : undefined,
-      run_5k_time: run5kTime ? `00:${run5kTime}` : undefined,
-      swim_400m_time: swim400mTime ? `00:${swim400mTime}` : undefined,
-    }
+  const handleSubmit = async () => {
+    if (!isValid || loading) return
+    setLoading(true)
+    setError(null)
 
-    const res = await fetch('/api/user/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    })
+    try {
+      // データ送信（POST）例：必要に応じてAPIエンドポイントに合わせて調整
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          week_start_day: weekStartDay,
+          timezone,
+          gender,
+          birth_date: birthDate,
+          email,
+          weight_kg: Number(weight),
+          ftp: ftp ? Number(ftp) : null,
+          run_5k_time: run5k,
+          swim_400m_time: swim400m,
+        }),
+      })
 
-    if (res.ok) {
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'サーバーエラーが発生しました')
+      }
+
       router.push('/dashboard')
-    } else {
-      console.error('API error:', await res.text())
+    } catch (err: any) {
+      setError(err.message || 'エラーが発生しました')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto mt-8">
-        <div>
-         <Label htmlFor="weightKg">体重（kg）※必須</Label>
-         <Input
-              id="weightKg"
-              type="number"
-              required
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
-         />
-      </div>
+    <main className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">トレーニング指標の入力</h1>
 
-      <div>
-        <Label htmlFor="ftp">FTP（任意）</Label>
-        <Input
-          id="ftp"
+      <label className="block mb-4">
+        体重 (kg) <span className="text-red-500">*</span>:
+        <input
           type="number"
+          min="30"
+          max="150"
+          step="0.1"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          className="mt-1 block w-full border rounded p-2"
+          required
+        />
+      </label>
+
+      <label className="block mb-4">
+        FTP (W)（任意）:
+        <input
+          type="number"
+          min="100"
+          max="500"
           value={ftp}
           onChange={(e) => setFtp(e.target.value)}
+          className="mt-1 block w-full border rounded p-2"
         />
-      </div>
+      </label>
 
-      <div>
-        <Label htmlFor="run5kTime">5kmランベスト（任意, mm:ss）</Label>
-        <Input
-          id="run5kTime"
-          placeholder="20:00"
-          value={run5kTime}
-          onChange={(e) => setRun5kTime(e.target.value)}
+      <label className="block mb-4">
+        5kmランベスト（任意）:
+        <input
+          type="text"
+          value={run5k}
+          onChange={(e) => setRun5k(e.target.value)}
+          placeholder="例: 00:20:00"
+          className="mt-1 block w-full border rounded p-2"
         />
-      </div>
+      </label>
 
-      <div>
-        <Label htmlFor="swim400mTime">400mスイムベスト（任意, mm:ss）</Label>
-        <Input
-          id="swim400mTime"
-          placeholder="08:00"
-          value={swim400mTime}
-          onChange={(e) => setSwim400mTime(e.target.value)}
+      <label className="block mb-6">
+        400mスイムベスト（任意）:
+        <input
+          type="text"
+          value={swim400m}
+          onChange={(e) => setSwim400m(e.target.value)}
+          placeholder="例: 00:07:30"
+          className="mt-1 block w-full border rounded p-2"
         />
-      </div>
+      </label>
 
-      <Button
-        type="submit"
-        className="w-full bg-[#009F9D] text-white hover:bg-[#007B7A]"
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+
+      <button
+        onClick={handleSubmit}
+        disabled={!isValid || loading}
+        className={`bg-[#009F9D] text-white px-4 py-2 rounded hover:opacity-90 ${(!isValid || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        入力完了してMichibikiを使用
-      </Button>
-    </form>
+        {loading ? '送信中...' : '入力完了してMichibikiを使用'}
+      </button>
+    </main>
   )
 }
