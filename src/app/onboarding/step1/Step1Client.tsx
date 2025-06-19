@@ -74,7 +74,7 @@ export default function Step1Client() {
           <p className="font-semibold mb-2">確認メールを送信しました。</p>
           <p className="text-sm leading-relaxed">
             ご入力いただいたメールアドレス宛に、
-            <strong>noreply@michibiki.resend.dev</strong> から確認用リンクをお送りしています。<br />
+            <strong>michibiki@resend.dev</strong> から確認用リンクをお送りしています。<br />
             メールが届かない場合は、迷惑メールフォルダやアドレスの入力ミスをご確認ください。<br />
             確認リンクをクリックすると、次のステップに進むことができます。
           </p>
