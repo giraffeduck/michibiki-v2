@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
       const { data: recreatedUser, error: recreateError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // ✅ 必須
+        email_confirm: true,
       })
 
       if (recreateError?.status === 422 && recreateError.message?.includes('already been registered')) {
@@ -76,6 +76,11 @@ export async function GET(req: NextRequest) {
       } else {
         userId = recreatedUser.user.id
       }
+
+      // 🔧 再作成後、パスワード再設定
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password,
+      })
 
       const { error: updateConnectionError } = await supabaseAdmin
         .from('external_connections')
@@ -124,7 +129,7 @@ export async function GET(req: NextRequest) {
       const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // ✅ 必須
+        email_confirm: true,
       })
 
       if (createError) {
@@ -133,6 +138,13 @@ export async function GET(req: NextRequest) {
       }
 
       userId = createdUser?.user?.id ?? null
+
+      // 🔧 新規作成後、パスワード再設定
+      if (userId) {
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password,
+        })
+      }
     }
 
     if (!userId) {
