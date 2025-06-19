@@ -32,9 +32,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'このメールアドレスは既に使用されています' }, { status: 409 })
   }
 
-  // トークン発行（署名付きJWT、有効期限10分）
   const token = jwt.sign(
-    { email, user_id }, // ← strava_id の代わりに user_id を使う
+    { email, user_id },
     process.env.EMAIL_VERIFICATION_SECRET!,
     { expiresIn: '10m' }
   )
@@ -43,19 +42,20 @@ export async function POST(req: Request) {
 
   try {
     await resend.emails.send({
-      from: process.env.EMAIL_SENDER_ADDRESS!,
+      from: 'noreply@michibiki.resend.dev',
       to: email,
       subject: '【Michibiki】メールアドレスの確認',
       html: `
         <p>以下のリンクをクリックしてメールアドレスを確認してください。</p>
         <p><a href="${verifyUrl}">${verifyUrl}</a></p>
         <p>有効期限は10分間です。</p>
+        <p>このメールは <strong>noreply@michibiki.resend.dev</strong> より送信されています。</p>
       `,
     })
 
     return NextResponse.json({ message: '確認メールを送信しました' })
   } catch (err) {
-    console.error(err)
+    console.error('メール送信エラー:', err)
     return NextResponse.json({ error: 'メール送信に失敗しました' }, { status: 500 })
   }
 }
