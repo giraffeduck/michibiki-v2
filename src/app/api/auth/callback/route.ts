@@ -27,8 +27,6 @@ export async function GET(req: NextRequest) {
   })
 
   const tokenData = await tokenResponse.json()
-  console.log('[Strava tokenData]', tokenData)
-
   if (!tokenData.access_token || !tokenData.athlete) {
     return NextResponse.redirect(new URL('/login-error?error=invalid_token', req.url))
   }
@@ -50,18 +48,25 @@ export async function GET(req: NextRequest) {
   if (existingConnection) {
     userId = existingConnection.user_id
   } else {
-    const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    })
+    const { data: userList } = await supabaseAdmin.auth.admin.listUsers()
+    const found = userList?.users.find((u) => u.email === email)
 
-    if (createError) {
-      console.error('Auth user creation failed:', createError)
-      return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
+    if (found) {
+      userId = found.id
+    } else {
+      const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      })
+
+      if (createError) {
+        console.error('Auth user creation failed:', createError)
+        return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
+      }
+
+      userId = createdUser?.user?.id ?? null
     }
-
-    userId = createdUser?.user?.id ?? null
 
     if (!userId) {
       return NextResponse.redirect(new URL('/login-error?error=no_user_id', req.url))
@@ -72,18 +77,32 @@ export async function GET(req: NextRequest) {
       provider: 'strava',
       credentials: tokenData,
       updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'user_id,provider',
     })
 
     if (insertError) {
       console.error('External connection insert failed:', insertError)
       return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
     }
+
+    const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
+      id: userId,
+      name: `${athlete.firstname} ${athlete.lastname}`,
+      gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
+      weight_kg: athlete.weight,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      plan: 'free',
+    }, {
+      onConflict: 'id',
+    })
+
+    if (userUpsertError) {
+      console.error('User upsert failed:', userUpsertError)
+      return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
+    }
   }
 
-  // ✅ 最終リダイレクト先はクライアント側でログイン処理を行う
-  const redirectUrl = new URL('/auth/callback/confirm', req.url)
-  redirectUrl.searchParams.set('email', email)
-  redirectUrl.searchParams.set('password', password)
-
-  return NextResponse.redirect(redirectUrl)
+  return NextResponse.redirect(new URL(`/auth/callback/confirm?email=${email}&password=${password}`, req.url))
 }
