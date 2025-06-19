@@ -28,7 +28,7 @@ export default function OnboardingStep1() {
       } else {
         setError(data.error || 'メール送信に失敗しました。')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('サーバーとの通信に失敗しました。')
     } finally {
       setLoading(false)
