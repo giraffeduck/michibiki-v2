@@ -2,24 +2,59 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 export default function Step1Client() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userId = searchParams.get('user_id') || ''
+  const emailParam = searchParams.get('email') || ''
+  const stravaId = searchParams.get('strava_id') || '' // 必要に応じて追加
+  // Strava IDベースの仮メールアドレス生成
+  const email = emailParam || (stravaId ? `strava_${stravaId}@strava.local` : '')
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
   const [timezone, setTimezone] = useState('Asia/Tokyo')
   const [gender, setGender] = useState('')
   const [birthDate, setBirthDate] = useState('')
-  const [email, setEmail] = useState('')
+  const [userError, setUserError] = useState<string | null>(null)
+  const [signingIn, setSigningIn] = useState(false)
 
-  const isValid = weekStartDay && timezone && userId
+  // --- Supabase Auth Cookie発行（初回表示時に一度だけ実行） ---
+  useEffect(() => {
+    const doSignIn = async () => {
+      if (!email) {
+        setUserError('認証情報が取得できません。');
+        return;
+      }
+      setSigningIn(true)
+      setUserError(null)
+      try {
+        const supabase = createBrowserSupabaseClient()
+        // Magic Link方式でサインイン（存在しなければ自動作成）
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: true },
+        })
+        if (error) {
+          setUserError('認証エラー: ' + error.message)
+        }
+      } catch (e) {
+        setUserError('認証処理に失敗しました')
+      } finally {
+        setSigningIn(false)
+      }
+    }
+    doSignIn()
+    // emailが決まったタイミングで一度だけ実行
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email])
+
+  const isValid = weekStartDay && timezone && userId && !signingIn
 
   const handleNext = () => {
     if (!isValid) return
-
     const query = new URLSearchParams({
       user_id: userId,
       week_start_day: weekStartDay,
@@ -28,13 +63,17 @@ export default function Step1Client() {
       birth_date: birthDate,
       email,
     }).toString()
-
     router.push(`/onboarding/step2?${query}`)
   }
 
   return (
     <main className="p-6 max-w-xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">ようこそ！まずは基本情報を入力してください。</h1>
+
+      {userError && <div className="text-red-500 mb-4">{userError}</div>}
+      {signingIn && (
+        <div className="mb-4 text-gray-600">認証中です… 少々お待ちください。</div>
+      )}
 
       <label className="block mb-4">
         週の開始曜日 <span className="text-red-500">*</span>：
@@ -46,6 +85,7 @@ export default function Step1Client() {
               value="Monday"
               checked={weekStartDay === 'Monday'}
               onChange={() => setWeekStartDay('Monday')}
+              disabled={signingIn}
             />
             月曜日
           </label>
@@ -56,6 +96,7 @@ export default function Step1Client() {
               value="Sunday"
               checked={weekStartDay === 'Sunday'}
               onChange={() => setWeekStartDay('Sunday')}
+              disabled={signingIn}
             />
             日曜日
           </label>
@@ -68,6 +109,7 @@ export default function Step1Client() {
           value={timezone}
           onChange={(e) => setTimezone(e.target.value)}
           className="mt-1 block w-full border rounded p-2"
+          disabled={signingIn}
         >
           <option value="Asia/Tokyo">Asia/Tokyo（日本）</option>
           <option value="UTC">UTC</option>
@@ -82,6 +124,7 @@ export default function Step1Client() {
           value={gender}
           onChange={(e) => setGender(e.target.value)}
           className="mt-1 block w-full border rounded p-2"
+          disabled={signingIn}
         >
           <option value="">選択してください</option>
           <option value="Male">男性</option>
@@ -97,16 +140,7 @@ export default function Step1Client() {
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
           className="mt-1 block w-full border rounded p-2"
-        />
-      </label>
-
-      <label className="block mb-6">
-        メールアドレス（任意）:
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full border rounded p-2"
+          disabled={signingIn}
         />
       </label>
 
