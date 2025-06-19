@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
   })
 
   const tokenData = await tokenResponse.json()
+  console.log('[Strava tokenData]', tokenData)
+
   if (!tokenData.access_token || !tokenData.athlete) {
     return NextResponse.redirect(new URL('/login-error?error=invalid_token', req.url))
   }
@@ -61,7 +63,11 @@ export async function GET(req: NextRequest) {
       })
 
       if (createError) {
-        console.error('Auth user creation failed:', createError)
+        console.error('[Auth user creation failed]', {
+          message: createError.message,
+          status: createError.status,
+          hint: createError.hint,
+        })
         return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
       }
 
@@ -104,5 +110,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // クライアントでログイン処理を行うために email/password を渡す
   return NextResponse.redirect(new URL(`/auth/callback/confirm?email=${email}&password=${password}`, req.url))
 }
