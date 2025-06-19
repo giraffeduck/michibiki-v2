@@ -12,28 +12,40 @@ export default function ConfirmPage() {
   const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
+    // 🔍 デバッグ用ログ：現在の URL とクエリ内容を確認
+    console.log('[ConfirmPage init] full URL:', window.location.href)
+    console.log('[ConfirmPage init] searchParams:', Object.fromEntries(searchParams.entries()))
+
     const login = async () => {
       const email = searchParams.get('email')
+      const userId = searchParams.get('user_id')
 
-      if (!email) {
-        console.error('email is missing in query params')
-        router.push('/login-error?error=missing_email')
+      console.log('[ConfirmPage login] email:', email)
+      console.log('[ConfirmPage login] user_id:', userId)
+
+      if (!email || !userId) {
+        console.error('email or user_id is missing in query params')
+        router.push('/login-error?error=missing_email_or_password')
         return
       }
 
       const stravaIdMatch = email.match(/^strava_(\d+)@strava\.local$/)
       if (!stravaIdMatch) {
-        console.error('email format is invalid')
+        console.error('email format is invalid:', email)
         router.push('/login-error?error=invalid_email_format')
         return
       }
 
       const password = `strava_${stravaIdMatch[1]}_dummy_password`
+      console.log('[ConfirmPage login] attempting signInWithPassword with', { email, password })
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
+
+      console.log('[ConfirmPage signInWithPassword] data:', data)
+      console.log('[ConfirmPage signInWithPassword] error:', error)
 
       if (error) {
         console.error('Supabase login failed:', error)
