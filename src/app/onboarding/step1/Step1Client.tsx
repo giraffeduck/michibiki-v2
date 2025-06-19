@@ -10,8 +10,7 @@ export default function Step1Client() {
   const searchParams = useSearchParams()
   const userId = searchParams.get('user_id') || ''
   const emailParam = searchParams.get('email') || ''
-  const stravaId = searchParams.get('strava_id') || '' // 必要に応じて追加
-  // Strava IDベースの仮メールアドレス生成
+  const stravaId = searchParams.get('strava_id') || ''
   const email = emailParam || (stravaId ? `strava_${stravaId}@strava.local` : '')
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
@@ -21,7 +20,7 @@ export default function Step1Client() {
   const [userError, setUserError] = useState<string | null>(null)
   const [signingIn, setSigningIn] = useState(false)
 
-  // --- Supabase Auth Cookie発行（初回表示時に一度だけ実行） ---
+  // --- Supabase Auth Cookie発行 ---
   useEffect(() => {
     const doSignIn = async () => {
       if (!email) {
@@ -32,7 +31,6 @@ export default function Step1Client() {
       setUserError(null)
       try {
         const supabase = createBrowserSupabaseClient()
-        // Magic Link方式でサインイン（存在しなければ自動作成）
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: { shouldCreateUser: true },
@@ -40,15 +38,14 @@ export default function Step1Client() {
         if (error) {
           setUserError('認証エラー: ' + error.message)
         }
-      } catch (e) {
+      } catch {
         setUserError('認証処理に失敗しました')
       } finally {
         setSigningIn(false)
       }
     }
     doSignIn()
-    // emailが決まったタイミングで一度だけ実行
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 依存配列空で一度だけ実行
   }, [email])
 
   const isValid = weekStartDay && timezone && userId && !signingIn
