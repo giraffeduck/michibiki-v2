@@ -12,14 +12,12 @@ export default function ConfirmPage() {
   const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
-    // 🔍 デバッグ用ログ：現在の URL とクエリ内容を確認
     console.log('[ConfirmPage init] full URL:', window.location.href)
     console.log('[ConfirmPage init] searchParams:', Object.fromEntries(searchParams.entries()))
 
     const login = async () => {
       const email = searchParams.get('email')
       const userId = searchParams.get('user_id')
-
       console.log('[ConfirmPage login] email:', email)
       console.log('[ConfirmPage login] user_id:', userId)
 
@@ -39,11 +37,7 @@ export default function ConfirmPage() {
       const password = `strava_${stravaIdMatch[1]}_dummy_password`
       console.log('[ConfirmPage login] attempting signInWithPassword with', { email, password })
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       console.log('[ConfirmPage signInWithPassword] data:', data)
       console.log('[ConfirmPage signInWithPassword] error:', error)
 

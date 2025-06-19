@@ -1,11 +1,12 @@
 // src/app/auth/callback/confirm/page.tsx
 import { Suspense } from 'react'
-import { ClientWrapper } from './ClientWrapper'
+import ConfirmPage from './ConfirmPage'
 
 export default function ConfirmPageWrapper() {
+  console.log('[ConfirmPageWrapper] mounted')
   return (
-    <Suspense fallback={<div>ログイン処理中...</div>}>
-      <ClientWrapper />
+    <Suspense fallback={<div>Loading...</div>}>
+      <ConfirmPage />
     </Suspense>
   )
 }
