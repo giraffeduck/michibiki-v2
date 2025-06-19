@@ -1,9 +1,6 @@
 // src/app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { Database } from '@/types/supabase'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,100 +49,19 @@ export async function GET(req: NextRequest) {
 
   if (existingConnection) {
     userId = existingConnection.user_id
-
-    const { data: userInAuth } = await supabaseAdmin.auth.admin.getUserById(userId!)
-    if (!userInAuth?.user?.id || userInAuth.user.id !== userId) {
-      const { data: recreatedUser, error: recreateError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      })
-
-      if (recreateError?.status === 422 && recreateError.message?.includes('already been registered')) {
-        const { data: userList } = await supabaseAdmin.auth.admin.listUsers()
-        const foundByEmail = userList?.users.find((u) => u.email === email)
-        if (foundByEmail) {
-          userId = foundByEmail.id
-        } else {
-          console.error('Email exists but user not found in listUsers()')
-          return NextResponse.redirect(new URL('/login-error?error=email_exists_but_user_not_found', req.url))
-        }
-      } else if (recreateError) {
-        console.error('Failed to recreate auth user:', recreateError)
-        return NextResponse.redirect(new URL('/login-error?error=auth_user_recreate_failed', req.url))
-      } else {
-        userId = recreatedUser.user.id
-      }
-
-      // 🔧 再作成後、パスワード再設定
-      await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password,
-      })
-
-      const { error: updateConnectionError } = await supabaseAdmin
-        .from('external_connections')
-        .update({ user_id: userId })
-        .eq('provider', 'strava')
-        .eq('credentials->athlete->id', stravaId)
-
-      if (updateConnectionError) {
-        console.error('Failed to update external_connections user_id:', updateConnectionError)
-        return NextResponse.redirect(new URL('/login-error?error=external_user_id_update_failed', req.url))
-      }
-    }
-
-    const { data: existingUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle()
-
-    if (!existingUser) {
-      const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
-        id: userId,
-        name: `${athlete.firstname} ${athlete.lastname}`,
-        gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
-        weight_kg: athlete.weight,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        plan: 'free',
-      }, {
-        onConflict: 'id',
-      })
-
-      if (userUpsertError) {
-        console.error('User upsert failed:', userUpsertError)
-        return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
-      }
-    }
-
   } else {
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers()
-    const found = userList?.users.find((u) => u.email === email)
+    const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    })
 
-    if (found) {
-      userId = found.id
-    } else {
-      const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      })
-
-      if (createError) {
-        console.error('Auth user creation failed:', createError)
-        return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
-      }
-
-      userId = createdUser?.user?.id ?? null
-
-      // 🔧 新規作成後、パスワード再設定
-      if (userId) {
-        await supabaseAdmin.auth.admin.updateUserById(userId, {
-          password,
-        })
-      }
+    if (createError) {
+      console.error('Auth user creation failed:', createError)
+      return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
     }
+
+    userId = createdUser?.user?.id ?? null
 
     if (!userId) {
       return NextResponse.redirect(new URL('/login-error?error=no_user_id', req.url))
@@ -156,45 +72,18 @@ export async function GET(req: NextRequest) {
       provider: 'strava',
       credentials: tokenData,
       updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'user_id,provider',
     })
 
     if (insertError) {
       console.error('External connection insert failed:', insertError)
       return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
     }
-
-    const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
-      id: userId,
-      name: `${athlete.firstname} ${athlete.lastname}`,
-      gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
-      weight_kg: athlete.weight,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      plan: 'free',
-    }, {
-      onConflict: 'id',
-    })
-
-    if (userUpsertError) {
-      console.error('User upsert failed:', userUpsertError)
-      return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
-    }
   }
 
-  // 🔐 Supabase Auth にログイン（セッション確立）
-  const supabaseClient = createServerComponentClient<Database>({ cookies })
-  const { error: loginError } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
-  })
+  // ✅ 最終リダイレクト先はクライアント側でログイン処理を行う
+  const redirectUrl = new URL('/auth/callback/confirm', req.url)
+  redirectUrl.searchParams.set('email', email)
+  redirectUrl.searchParams.set('password', password)
 
-  if (loginError) {
-    console.error('Failed to login user to Supabase Auth:', loginError)
-    return NextResponse.redirect(new URL('/login-error?error=supabase_login_failed', req.url))
-  }
-
-  // ✅ セッション確立後、ダッシュボードに遷移
-  return NextResponse.redirect(new URL('/dashboard', req.url))
+  return NextResponse.redirect(redirectUrl)
 }
