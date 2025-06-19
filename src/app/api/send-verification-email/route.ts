@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'メールアドレスが必要です' }, { status: 400 })
   }
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const user_id = cookieStore.get('user_id')?.value
 
   if (!user_id) {
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: '確認メールを送信しました' })
   } catch (err) {
-    console.error('Email send error:', err)
+    console.error(err)
     return NextResponse.json({ error: 'メール送信に失敗しました' }, { status: 500 })
   }
 }
