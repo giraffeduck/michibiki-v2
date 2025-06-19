@@ -1,3 +1,4 @@
+// src/app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -96,5 +97,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
   }
 
-  return NextResponse.redirect(new URL(`/auth/callback/confirm?user_id=${userId}`, req.url))
+  // ✅ emailを付けてリダイレクトする
+  return NextResponse.redirect(
+    new URL(`/auth/callback/confirm?user_id=${userId}&email=${encodeURIComponent(email)}`, req.url)
+  )
 }

@@ -13,16 +13,22 @@ export default function ConfirmPage() {
 
   useEffect(() => {
     const login = async () => {
-      const userId = searchParams.get('user_id')
+      const email = searchParams.get('email')
 
-      if (!userId) {
-        console.error('user_id is missing in query params')
-        router.push('/login-error?error=missing_user_id')
+      if (!email) {
+        console.error('email is missing in query params')
+        router.push('/login-error?error=missing_email')
         return
       }
 
-      const email = `strava_${userId}@strava.local`
-      const password = `strava_${userId}_dummy_password`
+      const stravaIdMatch = email.match(/^strava_(\d+)@strava\.local$/)
+      if (!stravaIdMatch) {
+        console.error('email format is invalid')
+        router.push('/login-error?error=invalid_email_format')
+        return
+      }
+
+      const password = `strava_${stravaIdMatch[1]}_dummy_password`
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
