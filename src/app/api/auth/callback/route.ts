@@ -1,4 +1,3 @@
-// src/app/api/auth/callback/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -40,76 +39,62 @@ export async function GET(req: NextRequest) {
 
   let userId: string | null = null
 
-  const { data: existingConnection } = await supabaseAdmin
-    .from('external_connections')
-    .select('user_id')
-    .eq('provider', 'strava')
-    .eq('credentials->athlete->id', stravaId)
-    .maybeSingle()
+  const { data: userList } = await supabaseAdmin.auth.admin.listUsers()
+  const found = userList?.users.find((u) => u.email === email)
 
-  if (existingConnection) {
-    userId = existingConnection.user_id
+  if (found) {
+    userId = found.id
   } else {
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers()
-    const found = userList?.users.find((u) => u.email === email)
+    const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+    })
 
-    if (found) {
-      userId = found.id
-    } else {
-      const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
+    if (createError) {
+      console.error('Auth user creation failed:', {
+        message: createError.message,
+        status: createError.status,
       })
-
-      if (createError) {
-        console.error('[Auth user creation failed]', {
-          message: createError.message,
-          status: createError.status,
-          hint: createError.hint,
-        })
-        return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
-      }
-
-      userId = createdUser?.user?.id ?? null
+      return NextResponse.redirect(new URL('/login-error?error=auth_create_failed', req.url))
     }
 
-    if (!userId) {
-      return NextResponse.redirect(new URL('/login-error?error=no_user_id', req.url))
-    }
-
-    const { error: insertError } = await supabaseAdmin.from('external_connections').upsert({
-      user_id: userId,
-      provider: 'strava',
-      credentials: tokenData,
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'user_id,provider',
-    })
-
-    if (insertError) {
-      console.error('External connection insert failed:', insertError)
-      return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
-    }
-
-    const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
-      id: userId,
-      name: `${athlete.firstname} ${athlete.lastname}`,
-      gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
-      weight_kg: athlete.weight,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      plan: 'free',
-    }, {
-      onConflict: 'id',
-    })
-
-    if (userUpsertError) {
-      console.error('User upsert failed:', userUpsertError)
-      return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
-    }
+    userId = createdUser?.user?.id ?? null
   }
 
-  // クライアントでログイン処理を行うために email/password を渡す
-  return NextResponse.redirect(new URL(`/auth/callback/confirm?email=${email}&password=${password}`, req.url))
+  if (!userId) {
+    return NextResponse.redirect(new URL('/login-error?error=no_user_id', req.url))
+  }
+
+  const { error: insertError } = await supabaseAdmin.from('external_connections').upsert({
+    user_id: userId,
+    provider: 'strava',
+    credentials: tokenData,
+    updated_at: new Date().toISOString(),
+  }, {
+    onConflict: 'user_id,provider',
+  })
+
+  if (insertError) {
+    console.error('External connection insert failed:', insertError)
+    return NextResponse.redirect(new URL('/login-error?error=external_insert_failed', req.url))
+  }
+
+  const { error: userUpsertError } = await supabaseAdmin.from('users').upsert({
+    id: userId,
+    name: `${athlete.firstname} ${athlete.lastname}`,
+    gender: athlete.sex === 'M' ? 'Male' : athlete.sex === 'F' ? 'Female' : 'Other',
+    weight_kg: athlete.weight,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    plan: 'free',
+  }, {
+    onConflict: 'id',
+  })
+
+  if (userUpsertError) {
+    console.error('User upsert failed:', userUpsertError)
+    return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
+  }
+
+  return NextResponse.redirect(new URL(`/auth/callback/confirm?user_id=${userId}`, req.url))
 }
