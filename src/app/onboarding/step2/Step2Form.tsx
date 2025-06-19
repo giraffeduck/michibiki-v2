@@ -31,7 +31,6 @@ export default function Step2Form() {
     setError(null)
 
     try {
-      // データ送信（POST）例：必要に応じてAPIエンドポイントに合わせて調整
       const res = await fetch('/api/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,8 +54,13 @@ export default function Step2Form() {
       }
 
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'エラーが発生しました')
+    } catch (err) {
+      // 型安全なエラーハンドリング
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('エラーが発生しました')
+      }
     } finally {
       setLoading(false)
     }
