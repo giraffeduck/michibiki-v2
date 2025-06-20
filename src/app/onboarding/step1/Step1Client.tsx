@@ -11,8 +11,10 @@ export default function Step1Client() {
   const userId = searchParams.get('user_id') || ''
   const emailParam = searchParams.get('email') || ''
   const stravaId = searchParams.get('strava_id') || ''
-  // strava_id優先で仮メール生成
+  // 仮メール
   const email = stravaId ? `strava_${stravaId}@example.com` : emailParam
+  // 仮パスワード
+  const password = stravaId ? `strava_${stravaId}_dummy_password` : ''
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
   const [timezone, setTimezone] = useState('Asia/Tokyo')
@@ -23,7 +25,7 @@ export default function Step1Client() {
 
   useEffect(() => {
     const doSignIn = async () => {
-      if (!email) {
+      if (!email || !stravaId) {
         setUserError('認証情報が取得できません。')
         return
       }
@@ -31,9 +33,10 @@ export default function Step1Client() {
       setUserError(null)
       try {
         const supabase = createBrowserSupabaseClient()
-        const { error } = await supabase.auth.signInWithOtp({
+        // パスワード認証方式に変更
+        const { error } = await supabase.auth.signInWithPassword({
           email,
-          options: { shouldCreateUser: true },
+          password,
         })
         if (error) {
           setUserError('認証エラー: ' + error.message)
@@ -45,7 +48,7 @@ export default function Step1Client() {
       }
     }
     doSignIn()
-  }, [email])
+  }, [email, stravaId, password])
 
   const isValid = weekStartDay && timezone && userId && !signingIn
 
