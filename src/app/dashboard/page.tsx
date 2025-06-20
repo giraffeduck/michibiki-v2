@@ -2,20 +2,16 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   const cookieStore = cookies()
 
   // サーバー側Supabaseクライアント
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: () => cookieStore,
-    }
-  )
+  const supabase = createPagesServerClient({
+    cookies: () => cookieStore,
+  })
 
   // Supabase Authのセッションからユーザー情報を取得
   const {
