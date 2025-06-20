@@ -2,12 +2,12 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesServerClient as createAppRouterSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   // Supabaseクライアントを作成（App Router用の推奨方法）
-  const supabase = createPagesServerClient({ cookies })
+  const supabase = createAppRouterSupabaseClient({ cookies })
 
   // Supabaseの認証情報からログイン中のユーザーを取得
   const {
