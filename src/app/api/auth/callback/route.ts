@@ -35,7 +35,8 @@ export async function GET(req: NextRequest) {
 
   const athlete = tokenData.athlete
   const stravaId = athlete.id
-  const email = `strava_${stravaId}@strava.local`
+  // ここを修正！
+  const email = `strava_${stravaId}@example.com`
   const password = `strava_${stravaId}_dummy_password`
 
   let userId: string | null = null
@@ -98,7 +99,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
   }
 
-  // ★ strava_idも付与してリダイレクト
+  // strava_idも付与してリダイレクト
   return NextResponse.redirect(
     new URL(`/auth/callback/confirm?user_id=${userId}&email=${encodeURIComponent(email)}&strava_id=${stravaId}`, req.url)
   )

@@ -12,7 +12,7 @@ export default function Step1Client() {
   const emailParam = searchParams.get('email') || ''
   const stravaId = searchParams.get('strava_id') || ''
   // strava_id優先で仮メール生成
-  const email = stravaId ? `strava_${stravaId}@strava.local` : emailParam
+  const email = stravaId ? `strava_${stravaId}@example.com` : emailParam
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
   const [timezone, setTimezone] = useState('Asia/Tokyo')
