@@ -6,16 +6,17 @@ import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
+  // Supabaseクライアントを作成（App Router用の推奨方法）
   const supabase = createPagesServerClient({ cookies })
 
-  // Supabase Authのセッションからユーザー情報を取得
+  // Supabaseの認証情報からログイン中のユーザーを取得
   const {
     data: { user },
     error: sessionError,
   } = await supabase.auth.getUser()
 
+  // ユーザーが見つからなければログイン画面を表示
   if (sessionError || !user) {
-    console.log('🔒 Not authenticated:', sessionError)
     return (
       <div className="p-4">
         <h1 className="text-xl font-bold">ログイン情報が見つかりません</h1>
@@ -32,7 +33,6 @@ export default async function DashboardPage() {
     .maybeSingle()
 
   if (userError || !userData) {
-    console.error('User fetch error:', userError)
     return (
       <div className="p-4">
         <h1 className="text-xl font-bold">ユーザー情報が取得できませんでした</h1>
@@ -41,9 +41,8 @@ export default async function DashboardPage() {
     )
   }
 
-  // ✅ onboarding未完了なら /onboarding にリダイレクト
+  // オンボーディング未完了ならリダイレクト
   if (!userData.week_start_day || !userData.weight_kg) {
-    console.log('🔁 onboarding 未完了のためリダイレクト')
     return redirect('/onboarding')
   }
 
