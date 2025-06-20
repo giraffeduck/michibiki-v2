@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // ← 追加！
+      email_confirm: true,
     })
 
     if (createError) {
@@ -98,7 +98,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url))
   }
 
+  // ★ strava_idも付与してリダイレクト
   return NextResponse.redirect(
-    new URL(`/auth/callback/confirm?user_id=${userId}&email=${encodeURIComponent(email)}`, req.url)
+    new URL(`/auth/callback/confirm?user_id=${userId}&email=${encodeURIComponent(email)}&strava_id=${stravaId}`, req.url)
   )
 }

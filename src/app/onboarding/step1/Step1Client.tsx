@@ -11,7 +11,8 @@ export default function Step1Client() {
   const userId = searchParams.get('user_id') || ''
   const emailParam = searchParams.get('email') || ''
   const stravaId = searchParams.get('strava_id') || ''
-  const email = emailParam || (stravaId ? `strava_${stravaId}@strava.local` : '')
+  // strava_id優先で仮メール生成
+  const email = stravaId ? `strava_${stravaId}@strava.local` : emailParam
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
   const [timezone, setTimezone] = useState('Asia/Tokyo')
@@ -20,12 +21,11 @@ export default function Step1Client() {
   const [userError, setUserError] = useState<string | null>(null)
   const [signingIn, setSigningIn] = useState(false)
 
-  // --- Supabase Auth Cookie発行 ---
   useEffect(() => {
     const doSignIn = async () => {
       if (!email) {
-        setUserError('認証情報が取得できません。');
-        return;
+        setUserError('認証情報が取得できません。')
+        return
       }
       setSigningIn(true)
       setUserError(null)
@@ -45,7 +45,6 @@ export default function Step1Client() {
       }
     }
     doSignIn()
-    // 依存配列空で一度だけ実行
   }, [email])
 
   const isValid = weekStartDay && timezone && userId && !signingIn
@@ -59,6 +58,7 @@ export default function Step1Client() {
       gender,
       birth_date: birthDate,
       email,
+      strava_id: stravaId,
     }).toString()
     router.push(`/onboarding/step2?${query}`)
   }
