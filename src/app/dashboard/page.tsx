@@ -6,12 +6,7 @@ import { createPagesServerClient } from '@supabase/auth-helpers-nextjs'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
-  const cookieStore = cookies()
-
-  // サーバー側Supabaseクライアント
-  const supabase = createPagesServerClient({
-    cookies: () => cookieStore,
-  })
+  const supabase = createPagesServerClient({ cookies })
 
   // Supabase Authのセッションからユーザー情報を取得
   const {
