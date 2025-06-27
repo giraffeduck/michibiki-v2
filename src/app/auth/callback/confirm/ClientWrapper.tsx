@@ -3,13 +3,17 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/ssr'
 import { Database } from '@/types/supabase'
 
 export function ClientWrapper() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const supabase = createClientComponentClient<Database>()
+  // createClientはクライアント・サーバー両対応
+  const supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [status, setStatus] = useState<'checking' | 'error'>('checking')
 
@@ -35,7 +39,8 @@ export function ClientWrapper() {
     }
 
     doLogin()
-  }, [searchParams, supabase, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, router]) // supabaseはuseEffect外で不変なので依存リストから外す
 
   return (
     <div className="p-4 text-center">
