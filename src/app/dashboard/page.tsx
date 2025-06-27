@@ -1,18 +1,34 @@
 // src/app/dashboard/page.tsx
 'use server'
 
-import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  // Supabase SSRクライアントを生成
+  // クッキーストアを取得
+  const cookieStore = cookies();
+
+  // Supabase SSR公式推奨：get/set/removeラッパー形式で渡す
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies }
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options?: any) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options?: any) {
+          cookieStore.delete({ name, ...options });
+        },
+      },
+    }
   );
 
+  // Supabase Authのセッションからユーザー情報を取得
   const {
     data: { user },
     error: sessionError,
@@ -27,6 +43,7 @@ export default async function DashboardPage() {
     );
   }
 
+  // usersテーブルから追加情報を取得
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('*')
@@ -42,6 +59,7 @@ export default async function DashboardPage() {
     );
   }
 
+  // オンボーディング未完了ならリダイレクト
   if (!userData.week_start_day || !userData.weight_kg) {
     return redirect('/onboarding');
   }
