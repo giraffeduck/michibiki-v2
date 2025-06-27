@@ -8,7 +8,6 @@ export default function Step2Form() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const userId = searchParams.get('user_id') || ''
   const weekStartDay = searchParams.get('week_start_day') || ''
   const timezone = searchParams.get('timezone') || ''
   const gender = searchParams.get('gender') || ''
