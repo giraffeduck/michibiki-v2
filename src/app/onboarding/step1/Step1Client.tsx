@@ -34,6 +34,7 @@ export default function Step1Client() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
+          credentials: 'include', // ★これを追加
         });
         const data = await res.json();
         if (res.status !== 200) {
