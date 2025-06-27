@@ -7,7 +7,8 @@ import { cookies } from 'next/headers'
  * headers() を使用せず cookies() を使うことで、ビルドエラーを回避
  */
 export async function getUserFromSession() {
-  const supabase = createSupabaseClientWithCookies(cookies())
+  // ★ここでawait必須！
+  const supabase = createSupabaseClientWithCookies(await cookies())
   const {
     data: { user },
     error,
