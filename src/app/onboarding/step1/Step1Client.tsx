@@ -3,7 +3,9 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/ssr'
+// ここを修正！↓
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '@/types/supabase'
 
 export default function Step1Client() {
   const router = useRouter()
@@ -30,8 +32,8 @@ export default function Step1Client() {
       setSigningIn(true)
       setUserError(null)
       try {
-        // createClientでSupabaseインスタンスを作成
-        const supabase = createClient(
+        // ここをsupabase-jsで生成
+        const supabase = createClient<Database>(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         )
