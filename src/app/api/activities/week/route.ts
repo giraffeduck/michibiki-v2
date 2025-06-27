@@ -34,7 +34,8 @@ export async function GET(req: Request) {
     const startDate = startOfISOWeek(refDate)
     const endDate = endOfISOWeek(refDate)
 
-    const supabase = createSupabaseClientWithCookies(cookies())
+    // ★ ここをawait付きに修正
+    const supabase = createSupabaseClientWithCookies(await cookies())
 
     const { data, error } = await supabase
       .from('activities')
