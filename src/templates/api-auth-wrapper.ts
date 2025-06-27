@@ -1,5 +1,5 @@
 // src/templates/api-auth-wrapper.ts
-import { createClient } from '@/utils/supabase/server'
+import { createSupabaseClientWithCookies } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 
 /**
@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
  * headers() を使用せず cookies() を使うことで、ビルドエラーを回避
  */
 export async function getUserFromSession() {
-  const supabase = createClient(cookies())
+  const supabase = createSupabaseClientWithCookies(cookies())
   const {
     data: { user },
     error,

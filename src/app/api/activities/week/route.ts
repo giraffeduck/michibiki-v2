@@ -1,5 +1,5 @@
 // src/app/api/activities/week/route.ts
-import { createClient } from '@/utils/supabase/server'
+import { createSupabaseClientWithCookies } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { getUserFromSession } from '@/templates/api-auth-wrapper'
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     const startDate = startOfISOWeek(refDate)
     const endDate = endOfISOWeek(refDate)
 
-    const supabase = createClient(cookies())
+    const supabase = createSupabaseClientWithCookies(cookies())
 
     const { data, error } = await supabase
       .from('activities')
