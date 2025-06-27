@@ -1,62 +1,58 @@
 // src/app/onboarding/step1/Step1Client.tsx
-'use client'
+'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-// ここを修正！↓
-import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function Step1Client() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const userId = searchParams.get('user_id') || ''
-  const emailParam = searchParams.get('email') || ''
-  const stravaId = searchParams.get('strava_id') || ''
-  const email = stravaId ? `strava_${stravaId}@example.com` : emailParam
-  const password = stravaId ? `strava_${stravaId}_dummy_password` : ''
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('user_id') || '';
+  const emailParam = searchParams.get('email') || '';
+  const stravaId = searchParams.get('strava_id') || '';
+  const email = stravaId ? `strava_${stravaId}@example.com` : emailParam;
+  const password = stravaId ? `strava_${stravaId}_dummy_password` : '';
 
-  const [weekStartDay, setWeekStartDay] = useState('Monday')
-  const [timezone, setTimezone] = useState('Asia/Tokyo')
-  const [gender, setGender] = useState('')
-  const [birthDate, setBirthDate] = useState('')
-  const [userError, setUserError] = useState<string | null>(null)
-  const [signingIn, setSigningIn] = useState(false)
+  const [weekStartDay, setWeekStartDay] = useState('Monday');
+  const [timezone, setTimezone] = useState('Asia/Tokyo');
+  const [gender, setGender] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [userError, setUserError] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     const doSignIn = async () => {
       if (!email || !stravaId) {
-        setUserError('認証情報が取得できません。')
-        return
+        setUserError('認証情報が取得できません。');
+        return;
       }
-      setSigningIn(true)
-      setUserError(null)
+      setSigningIn(true);
+      setUserError(null);
       try {
-        // ここをsupabase-jsで生成
-        const supabase = createClient<Database>(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) {
-          setUserError('認証エラー: ' + error.message)
+        // ここでAPI Route経由でサインイン
+        const res = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (res.status !== 200) {
+          setUserError('認証エラー: ' + (data.error || ''));
         }
       } catch {
-        setUserError('認証処理に失敗しました')
+        setUserError('認証処理に失敗しました');
       } finally {
-        setSigningIn(false)
+        setSigningIn(false);
       }
-    }
-    doSignIn()
-  }, [email, stravaId, password])
+    };
+    doSignIn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, stravaId, password]);
 
-  const isValid = weekStartDay && timezone && userId && !signingIn
+  const isValid = weekStartDay && timezone && userId && !signingIn;
 
   const handleNext = () => {
-    if (!isValid) return
+    if (!isValid) return;
     const query = new URLSearchParams({
       user_id: userId,
       week_start_day: weekStartDay,
@@ -65,9 +61,9 @@ export default function Step1Client() {
       birth_date: birthDate,
       email,
       strava_id: stravaId,
-    }).toString()
-    router.push(`/onboarding/step2?${query}`)
-  }
+    }).toString();
+    router.push(`/onboarding/step2?${query}`);
+  };
 
   return (
     <main className="p-6 max-w-xl mx-auto">
@@ -155,5 +151,5 @@ export default function Step1Client() {
         次へ
       </button>
     </main>
-  )
+  );
 }
