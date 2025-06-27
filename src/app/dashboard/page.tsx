@@ -2,18 +2,17 @@
 'use server'
 
 import { cookies } from "next/headers";
-import { createClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  // Supabase SSRクライアントを生成（App Router最適化）
-  const supabase = createClient(
+  // Supabase SSRクライアントを生成
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies }
   );
 
-  // Supabase Authのセッションからユーザー情報を取得
   const {
     data: { user },
     error: sessionError,
@@ -28,7 +27,6 @@ export default async function DashboardPage() {
     );
   }
 
-  // usersテーブルから追加情報を取得
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('*')
@@ -44,7 +42,6 @@ export default async function DashboardPage() {
     );
   }
 
-  // オンボーディング未完了ならリダイレクト
   if (!userData.week_start_day || !userData.weight_kg) {
     return redirect('/onboarding');
   }
