@@ -6,10 +6,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  // クッキーストアを取得
-  const cookieStore = cookies();
+  // Next.js 15対応：Promise型のためawait必須
+  const cookieStore = await cookies();
 
-  // Supabase SSR公式推奨：get/set/removeラッパー形式で渡す
+  // get/set/removeラッパー（型安全、any禁止）
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     }
   );
 
-  // Supabase Authのセッションからユーザー情報を取得
+  // 認証セッションからユーザー取得
   const {
     data: { user },
     error: sessionError,
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
     );
   }
 
-  // usersテーブルから追加情報を取得
+  // ユーザーテーブルから追加データ取得
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('*')
