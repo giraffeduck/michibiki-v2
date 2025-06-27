@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/ssr'
 
 export default function Step1Client() {
   const router = useRouter()
@@ -11,9 +11,7 @@ export default function Step1Client() {
   const userId = searchParams.get('user_id') || ''
   const emailParam = searchParams.get('email') || ''
   const stravaId = searchParams.get('strava_id') || ''
-  // 仮メール
   const email = stravaId ? `strava_${stravaId}@example.com` : emailParam
-  // 仮パスワード
   const password = stravaId ? `strava_${stravaId}_dummy_password` : ''
 
   const [weekStartDay, setWeekStartDay] = useState('Monday')
@@ -32,8 +30,11 @@ export default function Step1Client() {
       setSigningIn(true)
       setUserError(null)
       try {
-        const supabase = createBrowserSupabaseClient()
-        // パスワード認証方式に変更
+        // createClientでSupabaseインスタンスを作成
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,

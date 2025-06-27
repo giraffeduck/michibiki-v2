@@ -1,5 +1,5 @@
 // src/utils/supabase/server.ts
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/supabase'
 
@@ -7,16 +7,22 @@ import { Database } from '@/types/supabase'
  * App Routerのサーバーコンポーネントなどで使う標準的なSupabaseクライアント
  */
 export function createSupabaseServerClient() {
-  return createServerComponentClient<Database>({ cookies })
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies }
+  ) as ReturnType<typeof createClient<Database>>
 }
 
 /**
  * APIルートなどで cookieStore を受け取って使うための汎用Supabaseクライアント
  */
-export function createClient(cookieStore: ReturnType<typeof cookies>) {
-  return createServerComponentClient<Database>({
-    cookies: () => cookieStore,
-  })
+export function createSupabaseClientWithCookies(cookieStore: ReturnType<typeof cookies>) {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: cookieStore }
+  ) as ReturnType<typeof createClient<Database>>
 }
 
 /**
