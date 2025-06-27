@@ -6,14 +6,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  // 環境変数を確認
   console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   console.log('SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-  // Next.js 15対応：Promise型のためawait必須
   const cookieStore = await cookies();
 
-  // get/set/removeラッパー（型安全、any禁止）
+  // set, removeは絶対書かないこと！（getのみOK）
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,18 +19,11 @@ export default async function DashboardPage() {
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options?: Record<string, unknown>) {
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options?: Record<string, unknown>) {
-          cookieStore.delete({ name, ...options });
-        },
-      },
+        }
+      }
     }
   );
 
-  // 認証セッションからユーザー取得
   const {
     data: { user },
     error: sessionError,
@@ -51,7 +42,6 @@ export default async function DashboardPage() {
     );
   }
 
-  // ユーザーテーブルから追加データ取得
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('*')
@@ -71,7 +61,6 @@ export default async function DashboardPage() {
     );
   }
 
-  // オンボーディング未完了ならリダイレクト
   if (!userData.week_start_day || !userData.weight_kg) {
     console.log('🔁 onboarding 未完了のためリダイレクト');
     return redirect('/onboarding');
