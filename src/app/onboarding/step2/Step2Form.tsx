@@ -31,11 +31,10 @@ export default function Step2Form() {
     setError(null)
 
     try {
-      const res = await fetch('/api/onboarding', {
+      const res = await fetch('/api/user/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
           week_start_day: weekStartDay,
           timezone,
           gender,
@@ -55,7 +54,6 @@ export default function Step2Form() {
 
       router.push('/dashboard')
     } catch (err) {
-      // 型安全なエラーハンドリング
       if (err instanceof Error) {
         setError(err.message)
       } else {
