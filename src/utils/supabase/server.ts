@@ -6,8 +6,8 @@ import { Database } from '@/types/supabase'
 /**
  * App Routerのサーバーコンポーネントなどで使う標準的なSupabaseクライアント
  */
-export function createSupabaseServerClient() {
-  const cookieStore = cookies();
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -30,7 +30,7 @@ export function createSupabaseServerClient() {
 /**
  * APIルートなどで cookieStore を受け取って使うための汎用Supabaseクライアント
  */
-export function createSupabaseClientWithCookies(cookieStore: ReturnType<typeof cookies>) {
+export function createSupabaseClientWithCookies(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -54,7 +54,7 @@ export function createSupabaseClientWithCookies(cookieStore: ReturnType<typeof c
  * 認証済みユーザーを取得（主にサーバーコンポーネントで使用）
  */
 export async function getCurrentUser() {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data } = await supabase.auth.getUser()
   return data.user
 }
@@ -63,7 +63,7 @@ export async function getCurrentUser() {
  * Strava ID で userプロフィール情報を取得
  */
 export async function getProfile(stravaId: number) {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data } = await supabase
     .from('users')
     .select('*')
