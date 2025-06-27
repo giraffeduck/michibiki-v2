@@ -47,3 +47,6 @@ export async function getProfile(stravaId: number) {
 
   return data
 }
+
+// ★ここを追加！★
+export { createClient }
