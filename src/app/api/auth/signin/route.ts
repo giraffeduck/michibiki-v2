@@ -1,11 +1,12 @@
 // src/app/api/auth/signin/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // ✅ awaitを付ける
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +30,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  // 成功したら空JSON返すだけでOK（Set-Cookieは自動で返される）
   return NextResponse.json({});
 }
