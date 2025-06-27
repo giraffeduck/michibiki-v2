@@ -3,13 +3,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 
 export function ClientWrapper() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  // createClientはクライアント・サーバー両対応
+  // クライアント側はsupabase-jsから直接createClient
   const supabase = createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -40,7 +40,7 @@ export function ClientWrapper() {
 
     doLogin()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, router]) // supabaseはuseEffect外で不変なので依存リストから外す
+  }, [searchParams, router]) // supabaseは不変なので依存不要
 
   return (
     <div className="p-4 text-center">
