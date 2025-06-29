@@ -1,14 +1,18 @@
 // src/app/api/goals/route.ts
-import { createRouteHandlerClient } from '@supabase/ssr';
+import { createSupabaseClientWithCookies } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { Database } from '@/types/supabase';
-import { withAuth } from '@/templates/api-auth-wrapper';
+import { getUserFromSession } from '@/templates/api-auth-wrapper';
 
-// Supabaseクライアント初期化
-const supabase = createRouteHandlerClient<Database>({ cookies });
+export async function GET() {
+  const { user, error: authError } = await getUserFromSession();
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-export const GET = withAuth(async (user) => {
+  const supabase = createSupabaseClientWithCookies(await cookies());
+
   const { data, error } = await supabase
     .from('goals')
     .select('*')
@@ -20,9 +24,15 @@ export const GET = withAuth(async (user) => {
   }
 
   return NextResponse.json({ data });
-});
+}
 
-export const POST = withAuth(async (user, request) => {
+export async function POST(request: Request) {
+  const { user, error: authError } = await getUserFromSession();
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabase = createSupabaseClientWithCookies(await cookies());
   const body = await request.json();
 
   const {
@@ -63,4 +73,4 @@ export const POST = withAuth(async (user, request) => {
   }
 
   return NextResponse.json({ data });
-});
+}
