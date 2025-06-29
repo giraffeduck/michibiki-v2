@@ -39,6 +39,8 @@ export default function BottomTabBar() {
             >
               {tab.label}
             </span>
+            {/* これでPurgingを防止 */}
+            <span className="hidden text-brand"></span>
           </button>
         );
       })}

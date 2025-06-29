@@ -14,7 +14,7 @@ export default function TopHeader() {
         onClick={() => router.push("/dashboard")}
       >
         <img
-          src="/logo.svg"
+          src="/logo.png"
           alt="Michibiki Logo"
           className="h-10 w-auto"
         />
