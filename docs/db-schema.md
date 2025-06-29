@@ -24,6 +24,7 @@
 | plan              | TEXT               |                   | 課金プラン ('free', 'premium')            |
 | created_at        | TIMESTAMPTZ        |                   | 作成日時                                   |
 | updated_at        | TIMESTAMPTZ        |                   | 最終更新日時                               |
+| onboarding_completed | BOOLEAN         | DEFAULT false     | オンボーディング完了フラグ                  |
 
 ---
 
