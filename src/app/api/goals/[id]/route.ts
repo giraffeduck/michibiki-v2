@@ -1,10 +1,10 @@
 // src/app/api/goals/[id]/route.ts
 import { createSupabaseClientWithCookies } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromSession } from '@/templates/api-auth-wrapper';
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   return NextResponse.json({ data });
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
