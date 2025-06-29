@@ -1,6 +1,6 @@
 // tailwind.config.ts
-import type { Config } from "tailwindcss"
-import defaultTheme from "tailwindcss/defaultTheme"
+import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 const config: Config = {
   darkMode: "class",
@@ -55,6 +55,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brand: "#009F9D", // ブランドカラーを追加
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -78,5 +79,6 @@ const config: Config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
-export default config
+};
+
+export default config;
