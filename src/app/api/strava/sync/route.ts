@@ -4,6 +4,21 @@ import { createServerClient } from '@supabase/ssr';
 
 export const dynamic = 'force-dynamic';
 
+type StravaActivity = {
+  id: number;
+  name: string;
+  type: string;
+  start_date: string;
+  distance: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  average_heartrate: number | null;
+  max_heartrate: number | null;
+  average_watts: number | null;
+  average_cadence: number | null;
+  [key: string]: unknown;
+};
+
 export async function GET(request: Request) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,7 +87,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const activities = (await stravaRes.json()) as any[];
+  const activities = (await stravaRes.json()) as StravaActivity[];
 
   let insertedCount = 0;
 
@@ -97,7 +112,6 @@ export async function GET(request: Request) {
       })
       .select();
 
-    // 重複エラー（ユニーク制約違反）は無視
     if (insertError) {
       if (insertError.code === '23505') {
         continue;
