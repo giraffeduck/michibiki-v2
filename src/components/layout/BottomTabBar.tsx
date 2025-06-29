@@ -29,18 +29,16 @@ export default function BottomTabBar() {
           >
             <Icon
               className={`h-6 w-6 ${
-                isActive ? "text-brand" : "text-gray-500"
+                isActive ? "text-[#009F9D]" : "text-gray-500"
               }`}
             />
             <span
               className={`mt-1 ${
-                isActive ? "text-brand font-medium" : "text-gray-500"
+                isActive ? "text-[#009F9D] font-medium" : "text-gray-500"
               }`}
             >
               {tab.label}
             </span>
-            {/* これでPurgingを防止 */}
-            <span className="hidden text-brand"></span>
           </button>
         );
       })}
