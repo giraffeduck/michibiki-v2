@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       ftp: body.ftp || null,
       run_5k_time: body.run_5k_time || null,
       swim_400m_time: body.swim_400m_time || null,
+      onboarding_completed: true, // ✅ この行を追加
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id);
