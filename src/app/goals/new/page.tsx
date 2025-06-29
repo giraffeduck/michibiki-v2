@@ -1,3 +1,4 @@
+// src/app/goals/new/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -178,4 +179,11 @@ export default function NewGoalPage() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-[#009F9D] text-white rounded hover:bg-[#00807f] d
+          className="px-4 py-2 bg-[#009F9D] text-white rounded hover:bg-[#00807f] disabled:opacity-50"
+        >
+          {loading ? '登録中...' : '登録する'}
+        </button>
+      </form>
+    </main>
+  );
+}

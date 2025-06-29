@@ -1,8 +1,8 @@
 // src/app/goals/page.tsx
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+'use client';
 
-const GoalsClient = dynamic(() => import('./GoalsClient'), { ssr: false });
+import { Suspense } from 'react';
+import GoalsClient from './GoalsClient';
 
 export default function GoalsPage() {
   return (
