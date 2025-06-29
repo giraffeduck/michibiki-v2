@@ -44,8 +44,12 @@ export default function NewGoalPage() {
       }
 
       router.push('/goals');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('不明なエラーが発生しました');
+      }
     } finally {
       setLoading(false);
     }
