@@ -72,7 +72,48 @@ export async function GET(request: Request) {
     );
   }
 
-  const activities = await stravaRes.json();
+  const activities = (await stravaRes.json()) as any[];
 
-  return NextResponse.json({ activities });
+  let insertedCount = 0;
+
+  for (const act of activities) {
+    const { error: insertError } = await supabase
+      .from('activities')
+      .insert({
+        user_id: user.id,
+        external_id: act.id.toString(),
+        provider: 'strava',
+        name: act.name,
+        type: act.type,
+        start_date: act.start_date,
+        distance_m: act.distance,
+        duration_s: act.elapsed_time,
+        total_elevation_gain_m: act.total_elevation_gain,
+        average_heartrate: act.average_heartrate,
+        max_heartrate: act.max_heartrate,
+        average_watts: act.average_watts,
+        average_cadence: act.average_cadence,
+        raw_data: act,
+      })
+      .select();
+
+    // 重複エラー（ユニーク制約違反）は無視
+    if (insertError) {
+      if (insertError.code === '23505') {
+        continue;
+      } else {
+        return NextResponse.json(
+          { error: 'Database insert error', details: insertError.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    insertedCount++;
+  }
+
+  return NextResponse.json({
+    message: 'Sync completed',
+    inserted: insertedCount,
+  });
 }
