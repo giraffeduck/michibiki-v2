@@ -1,20 +1,39 @@
 // src/app/api/strava/sync/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  const supabase = createClient();
+export async function GET(request: Request) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          // NOTE: here we parse cookies from the request headers manually
+          const cookie = request.headers.get('cookie');
+          const match = cookie
+            ?.split(';')
+            ?.find((c) => c.trim().startsWith(`${name}=`));
+          return match ? decodeURIComponent(match.split('=')[1]) : undefined;
+        },
+        set(name, value, options) {
+          // Not strictly necessary here as API routes don't typically mutate cookies
+        },
+        remove(name, options) {
+          // Same as set
+        },
+      },
+    }
+  );
 
-  // 認証ユーザー
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // external_connectionsからStravaのcredentialsを取得
   const { data: connections, error: connError } = await supabase
     .from('external_connections')
     .select('credentials')
