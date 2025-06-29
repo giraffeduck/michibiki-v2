@@ -11,18 +11,11 @@ export async function GET(request: Request) {
     {
       cookies: {
         get(name) {
-          // NOTE: here we parse cookies from the request headers manually
           const cookie = request.headers.get('cookie');
           const match = cookie
             ?.split(';')
             ?.find((c) => c.trim().startsWith(`${name}=`));
           return match ? decodeURIComponent(match.split('=')[1]) : undefined;
-        },
-        set(name, value, options) {
-          // Not strictly necessary here as API routes don't typically mutate cookies
-        },
-        remove(name, options) {
-          // Same as set
         },
       },
     }
