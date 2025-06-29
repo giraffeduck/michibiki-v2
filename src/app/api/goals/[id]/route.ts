@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getUserFromSession } from '@/templates/api-auth-wrapper';
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: { id: string } }) {
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       run_target_time: body.run_target_time,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', params.id)
+    .eq('id', context.params.id)
     .eq('user_id', user.id)
     .select()
     .single();
@@ -40,7 +40,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   return NextResponse.json({ data });
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: { id: string } }) {
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -51,7 +51,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   const { error } = await supabase
     .from('goals')
     .delete()
-    .eq('id', params.id)
+    .eq('id', context.params.id)
     .eq('user_id', user.id);
 
   if (error) {
