@@ -2,7 +2,6 @@
 import { createSupabaseClientWithCookies } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { Database } from '@/types/supabase';
 import { getUserFromSession } from '@/templates/api-auth-wrapper';
 
 export async function GET() {
