@@ -46,7 +46,9 @@ export default async function GoalsPage() {
                 <td className="p-2 border">{goal.race_name}</td>
                 <td className="p-2 border">{goal.race_date}</td>
                 <td className="p-2 border">{goal.priority}</td>
-                <td className="p-2 border">{goal.total_target_time}</td>
+                <td className="p-2 border">
+                  {goal.total_target_time ? String(goal.total_target_time) : '-'}
+                </td>
               </tr>
             ))}
           </tbody>
