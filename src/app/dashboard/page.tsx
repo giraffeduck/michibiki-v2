@@ -2,6 +2,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { SyncButton } from './SyncButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +44,10 @@ export default async function DashboardPage() {
 
   return (
     <main className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">アクティビティ履歴</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">アクティビティ履歴</h1>
+        <SyncButton />
+      </div>
       {activities.length === 0 ? (
         <p>まだアクティビティが登録されていません。</p>
       ) : (
