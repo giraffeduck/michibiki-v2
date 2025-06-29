@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
     console.error('User fetch failed:', fetchError);
   }
 
-  let redirectPath = '/onboarding';
+  let redirectPath = `/onboarding?user_id=${userId}&email=${encodeURIComponent(email)}&strava_id=${stravaId}`;
   if (userRecord && userRecord.onboarding_completed) {
     redirectPath = '/dashboard';
   }
