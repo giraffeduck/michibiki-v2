@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromSession } from '@/templates/api-auth-wrapper';
 
 export async function PATCH(request: NextRequest) {
-  const id = request.nextUrl.pathname.split('/').slice(-2)[0];
+  const id = request.nextUrl.pathname.split('/').pop() || '';
 
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const id = request.nextUrl.pathname.split('/').slice(-2)[0];
+  const id = request.nextUrl.pathname.split('/').pop() || '';
 
   const { user, error: authError } = await getUserFromSession();
   if (authError || !user) {
