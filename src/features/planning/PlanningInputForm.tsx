@@ -10,6 +10,7 @@ export default function PlanningInputForm() {
   const [runPct, setRunPct] = useState<number>(30);
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [responseData, setResponseData] = useState<any>(null);
 
   const totalPct = swimPct + bikePct + runPct;
 
@@ -27,7 +28,7 @@ export default function PlanningInputForm() {
     setIsSubmitting(true);
 
     try {
-      await fetch('/api/planning/generate', {
+      const res = await fetch('/api/planning/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +40,13 @@ export default function PlanningInputForm() {
           runPct,
         }),
       });
-      alert('計画を生成しました！（モック）');
+
+      if (!res.ok) {
+        throw new Error('APIエラー');
+      }
+
+      const data = await res.json();
+      setResponseData(data);
     } catch (err) {
       console.error(err);
       setError('送信中にエラーが発生しました。');
@@ -115,6 +122,17 @@ export default function PlanningInputForm() {
       >
         {isSubmitting ? '送信中...' : '計画を生成する'}
       </button>
+
+      {responseData && (
+        <div className="mt-6 p-4 border rounded bg-gray-50">
+          <h3 className="font-semibold text-[#009F9D] mb-2">
+            生成された年間計画
+          </h3>
+          <pre className="text-sm whitespace-pre-wrap">
+            {JSON.stringify(responseData, null, 2)}
+          </pre>
+        </div>
+      )}
     </form>
   );
 }
