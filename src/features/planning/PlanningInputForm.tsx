@@ -10,7 +10,7 @@ export default function PlanningInputForm() {
   const [runPct, setRunPct] = useState<number>(30);
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [responseData, setResponseData] = useState<any>(null);
+  const [responseData, setResponseData] = useState<unknown>(null);
 
   const totalPct = swimPct + bikePct + runPct;
 
