@@ -97,6 +97,12 @@ export default function NewGoalPage() {
             <option value="B_RACE">Bレース</option>
             <option value="C_RACE">Cレース</option>
           </select>
+
+          <div className="text-sm text-gray-600 mt-2 space-y-1">
+            <p><strong>Aレース:</strong> シーズンの最大目標。ピーキング（調子を最高に合わせる）を行います。例: アイアンマン、ロングディスタンスの目標レース</p>
+            <p><strong>Bレース:</strong> 調整レース、戦術確認、モチベーション維持。重要度は高いがピーキングは不要です。</p>
+            <p><strong>Cレース:</strong> トレーニングの一環として参加（あれば）。</p>
+          </div>
         </div>
 
         <div>
