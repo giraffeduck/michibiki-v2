@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 type Goal = {
   id: string;
@@ -18,12 +18,11 @@ type Goal = {
   run_target_time: string | null;
 };
 
-type Props = {
-  params: { id: string };
-};
-
-export default function EditGoalPage({ params }: Props) {
+export default function EditGoalPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<Goal>>({});
@@ -36,7 +35,7 @@ export default function EditGoalPage({ params }: Props) {
           throw new Error('データ取得に失敗しました');
         }
         const { data } = await res.json();
-        const goal = data.find((g: Goal) => g.id === params.id);
+        const goal = data.find((g: Goal) => g.id === id);
         if (!goal) {
           throw new Error('目標が見つかりませんでした');
         }
@@ -48,7 +47,7 @@ export default function EditGoalPage({ params }: Props) {
       }
     };
     fetchGoal();
-  }, [params.id]);
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -59,7 +58,7 @@ export default function EditGoalPage({ params }: Props) {
     setError(null);
 
     try {
-      const res = await fetch(`/api/goals/${params.id}`, {
+      const res = await fetch(`/api/goals/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
