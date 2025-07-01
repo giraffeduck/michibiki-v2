@@ -104,3 +104,26 @@
 
 ---
 
+## training_plans
+
+| カラム名               | 型              | 説明                                                        |
+|---------------------|---------------|-----------------------------------------------------------|
+| id                  | uuid          | プライマリキー（自動生成）                                        |
+| user_id             | uuid          | ユーザーID（`auth.users` テーブルと紐づく / RLSで制御）               |
+| race_date           | date          | 計画の対象となるAレースの日付                                       |
+| start_date          | date          | 計画の開始日                                                  |
+| weeks_total         | integer       | Aレースまでの総週数                                              |
+| phase_base_weeks    | integer       | 基礎期の週数                                                  |
+| phase_build_weeks   | integer       | ビルド期の週数                                                 |
+| phase_peak_weeks    | integer       | 仕上げ期の週数                                                 |
+| phase_taper_weeks   | integer       | テーパー期の週数                                                |
+| weekly_hours        | integer       | 週間トレーニング時間（ユーザーが設定）                                     |
+| discipline_ratio    | jsonb         | 種目割合 `{ "swim": number, "bike": number, "run": number }` |
+| created_at          | timestamp     | 作成日時（`timezone('utc', now())`）                        |
+
+### Row Level Security (RLS)
+
+- 有効化済み
+- ポリシー: `auth.uid() = user_id` の行のみ操作可能
+
+---
