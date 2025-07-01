@@ -1,4 +1,4 @@
-// src/app/dashboard/planning/page.tsx
+// src/app/planning/create/page.tsx
 import { Suspense } from 'react';
 import PlanningInputForm from '@/features/planning/PlanningInputForm';
 
