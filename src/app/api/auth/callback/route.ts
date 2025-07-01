@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
   let userId: string | null = null;
 
   const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const found = (userList?.users as any[])?.find((u) => u.email === email);
 
   if (found) {
