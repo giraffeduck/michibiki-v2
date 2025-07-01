@@ -1,10 +1,7 @@
 // src/utils/supabase/server.ts
-import { SupabaseClient } from '@supabase/supabase-js'; // ★ この行を追加
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types/supabase';
-
-type UserProfile = Database['public']['Tables']['users']['Row'];
 
 /**
  * App Routerのサーバーコンポーネントなどで使う標準的なSupabaseクライアント
@@ -65,21 +62,15 @@ export async function getCurrentUser() {
 /**
  * Strava ID で userプロフィール情報を取得
  */
-export async function getProfile(stravaId: number): Promise<UserProfile | null> {
-  const cookieStore = await cookies();
-  const supabase = createSupabaseClientWithCookies(cookieStore);
+export async function getProfile(stravaId: number) {
+  const supabase = await createSupabaseServerClient();
 
-  // ★ supabase に SupabaseClient<Database> を明示的にアサート
-  const { data, error } = await (supabase as SupabaseClient<Database>)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = (await supabase
     .from('users')
     .select('*')
     .eq('strava_id', stravaId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Error fetching profile:', error.message);
-    return null;
-  }
+    .maybeSingle()) as any;
 
   return data;
 }
