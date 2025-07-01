@@ -1,11 +1,9 @@
-// src/app/planning/[id]/page.tsx
-
 export default function PlanningDetailPage({
   params,
-  searchParams,
+  searchParams: _searchParams,
 }: {
-  params: { id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
   return (
     <main className="p-4">
