@@ -2,8 +2,10 @@
 
 export default function PlanningDetailPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   return (
     <main className="p-4">
