@@ -4,10 +4,24 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+  const cookieStore = cookies();
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies }
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name);
+        },
+        set(name, value, options) {
+          cookies().set(name, value, options);
+        },
+        remove(name, options) {
+          cookies().delete(name, options);
+        },
+      },
+    }
   );
 
   try {
