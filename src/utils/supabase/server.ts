@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/supabase'
 
-// usersテーブルの型を定義
+// usersテーブルの型
 type UserProfile = Database['public']['Tables']['users']['Row']
 
 /**
@@ -66,8 +66,13 @@ export async function getCurrentUser() {
  * Strava ID で userプロフィール情報を取得
  */
 export async function getProfile(stravaId: number): Promise<UserProfile | null> {
-  const supabase = await createSupabaseServerClient();
-  
+  // 1. cookieStoreを同期で取得
+  const cookieStore = cookies();
+
+  // 2. 同期クライアントを生成
+  const supabase = createSupabaseClientWithCookies(cookieStore);
+
+  // 3. クエリを実行
   const { data, error } = await supabase
     .from('users')
     .select('*')
