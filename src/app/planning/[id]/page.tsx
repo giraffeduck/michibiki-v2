@@ -1,10 +1,15 @@
+// src/app/planning/[id]/page.tsx
+
 export default function PlanningDetailPage({
   params,
-  searchParams: _searchParams,
+  searchParams,
 }: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
+  // 一行だけ追加
+  console.log("searchParams:", searchParams);
+
   return (
     <main className="p-4">
       <h1 className="text-2xl font-bold mb-4">
