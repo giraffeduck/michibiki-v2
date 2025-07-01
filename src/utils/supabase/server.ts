@@ -64,11 +64,11 @@ export async function getCurrentUser() {
  */
 export async function getProfile(stravaId: number) {
   const supabase = await createSupabaseServerClient()
-  const { data } = await supabase
+  const { data } = await (supabase
     .from('users')
     .select('*')
     .eq('strava_id', stravaId)
-    .maybeSingle()
+    .maybeSingle() as any)
 
   return data
 }
