@@ -1,6 +1,10 @@
 // src/app/planning/[id]/page.tsx
 
-export default function PlanningDetailPage({ params }) {
+export default function PlanningDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   return (
     <main className="p-4">
       <h1 className="text-2xl font-bold mb-4">
