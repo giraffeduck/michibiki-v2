@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   let userId: string | null = null;
 
   const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-  const found = userList?.users.find((u) => u.email === email);
+  const found = (userList?.users as any[])?.find((u) => u.email === email);
 
   if (found) {
     userId = found.id;
