@@ -57,22 +57,20 @@ export function createSupabaseClientWithCookies(cookieStore: Awaited<ReturnType<
  * 認証済みユーザーを取得（主にサーバーコンポーネントで使用）
  */
 export async function getCurrentUser() {
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.auth.getUser()
-  return data.user
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+  return data.user;
 }
 
 /**
  * Strava ID で userプロフィール情報を取得
  */
 export async function getProfile(stravaId: number): Promise<UserProfile | null> {
-  // 1. cookieStoreを同期で取得
-  const cookieStore = cookies();
+  // 👈 await をつける
+  const cookieStore = await cookies();
 
-  // 2. 同期クライアントを生成
   const supabase = createSupabaseClientWithCookies(cookieStore);
 
-  // 3. クエリを実行
   const { data, error } = await supabase
     .from('users')
     .select('*')
