@@ -11,14 +11,22 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name) {
-          return cookieStore.get(name);
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         },
-        set(name, value, options) {
-          cookies().set(name, value, options);
+        set(name: string, value: string, options) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            console.error('Cookie set error', error);
+          }
         },
-        remove(name, options) {
-          cookies().delete(name, options);
+        remove(name: string, options) {
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            console.error('Cookie remove error', error);
+          }
         },
       },
     }
