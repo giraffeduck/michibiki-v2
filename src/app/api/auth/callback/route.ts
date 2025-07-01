@@ -104,6 +104,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/login-error?error=user_upsert_failed', req.url));
   }
 
+  // 🌟 Supabaseサインイン処理を追加
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    console.error('SignIn failed:', signInError);
+    return NextResponse.redirect(new URL('/login-error?error=signin_failed', req.url));
+  }
+
   // onboarding_completed を確認して分岐
   const { data: userRecord, error: fetchError } = await supabaseAdmin
     .from('users')
