@@ -1,7 +1,12 @@
 // src/app/planning/[id]/page.tsx
-import { type PageProps } from "next";
 
-export default function PlanningDetailPage({ params }: PageProps) {
+interface Props {
+  params: {
+    id: string;
+  };
+}
+
+export default function PlanningDetailPage({ params }: Props) {
   return (
     <main className="p-4">
       <h1 className="text-2xl font-bold mb-4">
