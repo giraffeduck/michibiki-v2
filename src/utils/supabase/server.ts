@@ -66,11 +66,11 @@ export async function getCurrentUser() {
 export async function getProfile(stravaId: number) {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase
     .from('users')
-    .select('id, strava_id, name, created_at') // ★ カラムを限定
+    .select('*')
     .eq('strava_id', stravaId)
-    .maybeSingle();
+    .maybeSingle() as unknown as { data: any; error: any });
 
   if (error) {
     console.error('Error fetching profile:', error.message);
