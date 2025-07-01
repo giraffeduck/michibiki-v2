@@ -63,13 +63,13 @@ export async function getCurrentUser() {
  * Strava ID で userプロフィール情報を取得
  */
 export async function getProfile(stravaId: number) {
-  const supabase = await createSupabaseServerClient()
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = await createSupabaseServerClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase
     .from('users')
     .select('*')
     .eq('strava_id', stravaId)
-    .maybeSingle() as any)
+    .maybeSingle() as any);
 
-  return data
+  return data;
 }
