@@ -1,13 +1,28 @@
 // src/app/api/planning/generate/route.ts
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
+
   try {
     const body = await req.json();
-
     const { weeklyHours, swimPct, bikePct, runPct } = body;
 
-    // TODO: 認証・Aレース取得処理を後で実装
+    // 認証チェック
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: '認証情報が確認できません。' },
+        { status: 401 }
+      );
+    }
 
     // モックAレース日（6か月後）
     const raceDate = new Date();
@@ -41,28 +56,39 @@ export async function POST(req: Request) {
       base = diffWeeks - (taper + peak + build);
     }
 
-    // 計画JSON
-    const plan = {
-      startDate: now.toISOString(),
-      raceDate: raceDate.toISOString(),
-      weeksTotal: diffWeeks,
-      phases: {
-        base,
-        build,
-        peak,
-        taper,
-      },
-      weeklyHours,
-      disciplineRatio: {
-        swim: swimPct,
-        bike: bikePct,
-        run: runPct,
-      },
-    };
+    // INSERT
+    const { data, error } = await supabase
+      .from('training_plans')
+      .insert({
+        user_id: user.id,
+        race_date: raceDate.toISOString().slice(0, 10),
+        start_date: now.toISOString().slice(0, 10),
+        weeks_total: diffWeeks,
+        phase_base_weeks: base,
+        phase_build_weeks: build,
+        phase_peak_weeks: peak,
+        phase_taper_weeks: taper,
+        weekly_hours: weeklyHours,
+        discipline_ratio: {
+          swim: swimPct,
+          bike: bikePct,
+          run: runPct,
+        },
+      })
+      .select()
+      .single();
 
-    return NextResponse.json(plan);
-  } catch (error) {
-    console.error(error);
+    if (error) {
+      console.error(error);
+      return NextResponse.json(
+        { error: 'Supabaseへの保存に失敗しました。' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
       { error: 'Invalid request.' },
       { status: 400 }
