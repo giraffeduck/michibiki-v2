@@ -60,21 +60,22 @@ export async function getCurrentUser() {
   return data.user;
 }
 
-
 /**
  * Strava ID で userプロフィール情報を取得
  */
 export async function getProfile(stravaId: number) {
   const supabase = await createSupabaseServerClient();
 
-  const query = supabase
+  const { data, error } = await supabase
     .from('users')
-    .select('*')
+    .select('id, strava_id, name, created_at') // ★ カラムを限定
     .eq('strava_id', stravaId)
-    // ここでanyにする
-    .maybeSingle() as any;
+    .maybeSingle();
 
-  const { data } = await query;
+  if (error) {
+    console.error('Error fetching profile:', error.message);
+    return null;
+  }
 
   return data;
 }
