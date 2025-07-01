@@ -64,12 +64,14 @@ export async function getCurrentUser() {
  */
 export async function getProfile(stravaId: number) {
   const supabase = await createSupabaseServerClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (supabase
-    .from('users')
-    .select('*')
-    .eq('strava_id', stravaId)
-    .maybeSingle() as any);
+  const { data } = await (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase
+      .from('users')
+      .select('*')
+      .eq('strava_id', stravaId)
+      .maybeSingle() as any
+  );
 
   return data;
 }
