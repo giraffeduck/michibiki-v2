@@ -1,6 +1,6 @@
 // src/app/planning/[id]/page.tsx
 
-export default function PlanningDetailPage(props: any) {
+export default function PlanningDetailPage() {
   return (
     <main className="p-4">
       <h1 className="text-2xl font-bold mb-4">
