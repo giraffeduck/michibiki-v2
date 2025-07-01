@@ -64,6 +64,7 @@ export async function getCurrentUser() {
  */
 export async function getProfile(stravaId: number) {
   const supabase = await createSupabaseServerClient()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase
     .from('users')
     .select('*')
