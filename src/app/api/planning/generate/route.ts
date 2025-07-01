@@ -1,5 +1,5 @@
 // src/app/api/planning/generate/route.ts
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -14,18 +14,18 @@ export async function POST(req: Request) {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options) {
+        set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
           } catch (error) {
             console.error('Cookie set error', error);
           }
         },
-        remove(name: string, options) {
+        remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            cookieStore.delete({ name, ...options });
           } catch (error) {
-            console.error('Cookie remove error', error);
+            console.error('Cookie delete error', error);
           }
         },
       },
@@ -36,7 +36,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { weeklyHours, swimPct, bikePct, runPct } = body;
 
-    // 認証チェック
     const {
       data: { user },
       error: userError,
@@ -49,16 +48,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // モックAレース日（6か月後）
     const raceDate = new Date();
     raceDate.setMonth(raceDate.getMonth() + 6);
 
-    // 今日からAレースまでの週数
     const now = new Date();
     const diffTime = raceDate.getTime() - now.getTime();
     const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
 
-    // シンプル期分けルール
     let taper = 0;
     let peak = 0;
     let build = 0;
@@ -81,7 +77,6 @@ export async function POST(req: Request) {
       base = diffWeeks - (taper + peak + build);
     }
 
-    // INSERT
     const { data, error } = await supabase
       .from('training_plans')
       .insert({
